@@ -164,7 +164,7 @@ compare_years <- function(data_in, smooth_type){
     x <- x |> arrange(month(year_mon), year(year_mon))
     
     # make comparison into a factor, making sure its ordered correctly
-    x$comparison <- factor(x$comparison, levels = x$comparison, ordered = TRUE)
+    x$comparison <- factor(x$comparison, levels = unique(x$comparison), ordered = TRUE)
     return(x)
 }
 
@@ -222,7 +222,7 @@ compare_months <- function(data_in, years, smooth_type){
   x <- x |> arrange(year(year_mon), month(year_mon))
   
   # make comparison into a factor, making sure its ordered correctly
-  x$comparison <- factor(x$comparison, levels = x$comparison, ordered = TRUE)
+  x$comparison <- factor(x$comparison, levels = unique(x$comparison), ordered = TRUE)
   return(x)
 }
 # Wrangle data =================================================================
