@@ -125,7 +125,8 @@ compare_years <- function(data_in, smooth_type){
   }else{
     stop('Need valid smooth type, either flat or geom')
   }
-  x <- set_names(yms) |>
+  x <- x |>
+       set_names(yms) |>
        lapply(t) |>
        lapply(as.vector) |>
        enframe(name = 'year_mon', value = 'obs_freq') |> 
@@ -151,9 +152,10 @@ compare_years <- function(data_in, smooth_type){
                                           diff > 0 ~ sqrt(abs(diff))
                                          )
                 )
-    cat('year-on-year comparison df created, smoothed with', smooth_type)
+    cat('year-on-year comparison df created, smoothed with', smooth_type, '\n')
     
     n <- length(unique(x$comparison))
+    print(n)
     # add long_bin and lat_bin columns
     x <- x |> mutate(long_bin = rep(rep(1:200, each = 200), n),
                      lat_bin = rep(rep(1:200, times = 200), n))
@@ -180,7 +182,8 @@ compare_months <- function(data_in, years, smooth_type){
   }else{
     stop('Need valid smooth type, either flat or geom')
   }
-  x <- set_names(yms) |>
+  x <- x |>
+       set_names(yms) |>
        lapply(t) |>
        lapply(as.vector) |>
        enframe(name = 'year_mon', value = 'obs_freq') |> 
@@ -209,7 +212,8 @@ compare_months <- function(data_in, years, smooth_type){
           )
   cat('month-on-month comparison df created, smoothed with', smooth_type)
   
-  n <- length(unique(x$comparison))
+  n <- length(unique(x$comparison)) 
+  print(n)
   # add long_bin and lat_bin columns
   x <- x |> mutate(long_bin = rep(rep(1:200, each = 200), n),
                    lat_bin = rep(rep(1:200, times = 200), n))
