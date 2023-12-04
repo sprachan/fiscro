@@ -351,35 +351,36 @@ remove(subsample)
 # # free up some RAM
 # remove(month_plot)
 
-## Year-on-Year comparisons ----------------------------------------
-yy_compare_flat <- compare_years(ym_obs_freq, smooth_type = 'flat')
-
-# plot
-yy_plot <- ggplot(yy_compare_flat, 
-                  aes(x = long_bin, 
-                      y = lat_bin, 
-                      fill = transform_diff))+
-           geom_raster()+
-           ggforce::facet_wrap_paginate(facets = vars(comparison), 
-                                        nrow = 3, 
-                                        ncol = 4)+
-           scale_fill_distiller(palette = 'RdBu', 
-                                direction = -1, 
-                                na.value = '#cccccc')+
-           theme_bw()+
-           theme(legend.direction = 'horizontal',
-                 legend.position = 'bottom')
-print('created gg object for year-on-year comparisons')
-
-save_pages(yy_plot, type = 'flat_smoothed_yy',
-           facets = vars(comparison),
-           nrow = 3,
-           ncol = 4,
-           species = opt$s,
-           directory = 'comparisons')
-print('saved pages for flat smoothed year-on-year comparisons')
-
-remove(yy_plot)
+## Year-on-Year comparisons ----------------------------------------------------
+## this is commented out to save computation time because I've done it once before
+# yy_compare_flat <- compare_years(ym_obs_freq, smooth_type = 'flat')
+# 
+# # plot
+# yy_plot <- ggplot(yy_compare_flat, 
+#                   aes(x = long_bin, 
+#                       y = lat_bin, 
+#                       fill = transform_diff))+
+#            geom_raster()+
+#            ggforce::facet_wrap_paginate(facets = vars(comparison), 
+#                                         nrow = 3, 
+#                                         ncol = 4)+
+#            scale_fill_distiller(palette = 'RdBu', 
+#                                 direction = -1, 
+#                                 na.value = '#cccccc')+
+#            theme_bw()+
+#            theme(legend.direction = 'horizontal',
+#                  legend.position = 'bottom')
+# print('created gg object for year-on-year comparisons')
+# 
+# save_pages(yy_plot, type = 'flat_smoothed_yy',
+#            facets = vars(comparison),
+#            nrow = 3,
+#            ncol = 4,
+#            species = opt$s,
+#            directory = 'comparisons')
+# print('saved pages for flat smoothed year-on-year comparisons')
+# 
+# remove(yy_plot)
 ## Month-on-Month comparisons ----
 years <- c(2010, 2016, 2022)
 mm_compare_flat <- compare_months(ym_obs_freq, 
@@ -458,38 +459,39 @@ remove(mm_plot)
 # # free up some RAM
 # remove(month_plot)
 
-## Year-on-Year comparisons ----
-yy_compare_geom <- compare_years(ym_obs_freq, smooth_type = 'geom')
+## Year-on-Year comparisons ----------------------------------------------------
+# commented this out to save computation time because I've done it before
+# yy_compare_geom <- compare_years(ym_obs_freq, smooth_type = 'geom')
+# 
+# # plot
+# yy_plot <- ggplot(yy_compare_geom, 
+#                   aes(x = long_bin, 
+#                       y = lat_bin, 
+#                       fill = transform_diff))+
+#            geom_raster()+
+#            ggforce::facet_wrap_paginate(facets = vars(comparison), 
+#                                         nrow = 3, 
+#                                         ncol = 4)+
+#            scale_fill_distiller(palette = 'RdBu', 
+#                                 direction = -1, 
+#                                 na.value = '#cccccc')+
+#            theme_bw()+
+#            theme(legend.direction = 'horizontal',
+#                  legend.position = 'bottom')
+# print('created gg object for year-on-year comparisons of geom smooth')
+# 
+# save_pages(yy_plot, 
+#            type = 'geom_smoothed_yy',
+#            facets = vars(comparison),
+#            nrow = 3,
+#            ncol = 4,
+#            species = opt$s,
+#            directory = 'comparisons')
+# print('saved pages for geom smoothed year-on-year comparisons')
+# 
+# remove(yy_plot)
 
-# plot
-yy_plot <- ggplot(yy_compare_geom, 
-                  aes(x = long_bin, 
-                      y = lat_bin, 
-                      fill = transform_diff))+
-           geom_raster()+
-           ggforce::facet_wrap_paginate(facets = vars(comparison), 
-                                        nrow = 3, 
-                                        ncol = 4)+
-           scale_fill_distiller(palette = 'RdBu', 
-                                direction = -1, 
-                                na.value = '#cccccc')+
-           theme_bw()+
-           theme(legend.direction = 'horizontal',
-                 legend.position = 'bottom')
-print('created gg object for year-on-year comparisons of geom smooth')
-
-save_pages(yy_plot, 
-           type = 'geom_smoothed_yy',
-           facets = vars(comparison),
-           nrow = 3,
-           ncol = 4,
-           species = opt$s,
-           directory = 'comparisons')
-print('saved pages for geom smoothed year-on-year comparisons')
-
-remove(yy_plot)
-
-## Month-on-Month comparisons ----
+## Month-on-Month comparisons --------------------------------------------------
 years <- c(2010, 2015, 2022)
 mm_compare_geom <- compare_months(ym_obs_freq, 
                                   years = years, 
