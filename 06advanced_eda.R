@@ -246,7 +246,7 @@ compare_months <- function(data_in, years, smooth_type){
   y <- y |> mutate(long_bin = rep(rep(1:200, each = 200), n),
                    lat_bin = rep(rep(1:200, times = 200), n),
                    year_mon = as.yearmon(substring(comparison, 1, 8)))|> 
-            arrange(month(year_mon), year(year_mon))
+            arrange(year(year_mon), month(year_mon))
   
   # make comparison into a factor, making sure its ordered correctly
   y$comparison <- factor(y$comparison, 
