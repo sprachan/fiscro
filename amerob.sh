@@ -5,5 +5,5 @@
 # 06advanced_eda.R takes -s = species_code
 
 
-Rscript 064advanced_eda.R -s amerob
+Rscript 06advanced_eda.R -s amerob
 

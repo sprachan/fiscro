@@ -101,7 +101,8 @@ flat_smooth <- function(matrix_in){
 df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
   temp <- ungroup(df)
   if(nest_by == 'ym'){
-    temp <- complete(temp, nesting(year_mon),
+    temp <- complete(temp, 
+		     nesting(year_mon),
                      long_bin = 1:n,
                      lat_bin = 1:n) |>
       filter(year_mon == over) |>
@@ -109,7 +110,8 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
     temp <- matrix(temp$obs_freq, nrow = n, ncol = n, byrow = TRUE)
     return(temp)
   }else if(nest_by == 'comparison'){
-    temp <- complete(temp, nesting(comparison),
+    temp <- complete(temp, 
+		     nesting(comparison),
                      long_bin = 1:n,
                      lat_bin = 1:n) |>		     
       filter(comparison == over) |>
@@ -191,28 +193,28 @@ compare_months <- function(data_in, years, smooth_type){
   
   # make a data frame that has transformed differences
   x <- map(yms, ~df_to_mat(data_in, over = .x, nest_by = 'ym')) |> 
-    set_names(yms) |> 
-    lapply(t) |>
-    lapply(as.vector) |> 
-    enframe(name = 'year_mon', value = 'obs_freq') |>
-    expand(nesting(year_mon = as.yearmon(year_mon),
-                   obs_freq),
-           nesting(year_mon2 = as.yearmon(year_mon),
-                   obs_freq2 = obs_freq)) |>
-    filter(year(year_mon) %in% years,
-           year(year_mon) == year(year_mon2),
-           month(year_mon) == month(year_mon2)-1) |>
-    mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
-           diff = map2(obs_freq2, obs_freq, `-`)) |>
-    select(-obs_freq, -obs_freq2, -year_mon, -year_mon2) |>
-    unnest_longer(diff) |>
-    mutate(diff = case_when(is.nan(diff) ~ NA,
-                            !is.nan(diff) ~ diff),
-           transform_diff = case_when(is.na(diff) ~ NA,
-                                      diff < 0 ~ -sqrt(abs(diff)),
-                                      diff == 0 ~ 0,
-                                      diff > 0 ~ sqrt(abs(diff)))
-          )
+       set_names(yms) |> 
+       lapply(t) |>
+       lapply(as.vector) |> 
+       enframe(name = 'year_mon', value = 'obs_freq') |>
+       expand(nesting(year_mon = as.yearmon(year_mon),
+                      obs_freq),
+              nesting(year_mon2 = as.yearmon(year_mon),
+                      obs_freq2 = obs_freq)) |>
+       filter(year(year_mon) %in% years,
+              year(year_mon) == year(year_mon2),
+              month(year_mon) == month(year_mon2)-1) |>
+        mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
+               diff = map2(obs_freq2, obs_freq, `-`)) |>
+        select(-obs_freq, -obs_freq2, -year_mon, -year_mon2) |>
+        unnest_longer(diff) |>
+        mutate(diff = case_when(is.nan(diff) ~ NA,
+                               !is.nan(diff) ~ diff),
+               transform_diff = case_when(is.na(diff) ~ NA,
+                                          diff < 0 ~ -sqrt(abs(diff)),
+                                          diff == 0 ~ 0,
+                                          diff > 0 ~ sqrt(abs(diff)))
+              )
   
   n <- length(unique(x$comparison))
   # add lat_bin, long_bin columns
@@ -221,7 +223,7 @@ compare_months <- function(data_in, years, smooth_type){
   
   com <- unique(x$comparison)
   y <- map(com, ~df_to_mat(x, over = .x, nest_by = 'comparison')) |>
-    set_names(com)
+       set_names(com)
   if(smooth_type == 'flat'){
     y <- map(y, flat_smooth)
   }else if(smooth_type == 'geom'){
@@ -231,13 +233,13 @@ compare_months <- function(data_in, years, smooth_type){
   }
   
   y <- set_names(y, com) |>
-    lapply(t) |>
-    lapply(as.vector) |>
-    enframe(name = 'comparison', value = 'transform_diff') |>
-    unnest_longer(transform_diff) |>
-    mutate(transform_diff = case_when(is.nan(transform_diff) ~ NA,
-                                      !is.nan(transform_diff)~transform_diff)
-    )
+       lapply(t) |>
+       lapply(as.vector) |>
+       enframe(name = 'comparison', value = 'transform_diff') |>
+       unnest_longer(transform_diff) |>
+       mutate(transform_diff = case_when(is.nan(transform_diff) ~ NA,
+                                         !is.nan(transform_diff)~transform_diff)
+             )
   
   n <- length(unique(y$comparison))
   # add lat_bin, long_bin columns
@@ -261,15 +263,15 @@ print('loaded')
 # filter data
 years <- seq(2010, 2022, by = 1)
 subsample <- filter(subsample, 
-		                year(observation_date) %in% years,
-		                species_code == opt$s)
+		    year(observation_date) %in% years,
+		    species_code == opt$s)
 print('filtered')
 
 # process data
 ym_obs_freq <- mutate(subsample,
-		                  year_mon = as.yearmon(observation_date)) |>
-	                    group_by(year_mon, long_bin, lat_bin) |>
-	                    summarize(obs_freq = sum(species_observed)/n())
+		      year_mon = as.yearmon(observation_date)) |>
+		      group_by(year_mon, long_bin, lat_bin) |>
+		      summarize(obs_freq = sum(species_observed)/n())
 print('summarized')
 
 # free up some RAM
@@ -306,10 +308,7 @@ remove(subsample)
 
 
 # Flat Smoothing ===============================================================
-
-yms <- unique(ym_obs_freq$year_mon)
-
-## prep and plot smoothed data ----
+## prep and plot smoothed data -------------------------------------------------
 
 # plot smoothed data; again, this is commented out to save time because
 #> these plots have been previously generated
@@ -352,7 +351,7 @@ yms <- unique(ym_obs_freq$year_mon)
 # # free up some RAM
 # remove(month_plot)
 
-## Year-on-Year comparisons ----
+## Year-on-Year comparisons ----------------------------------------
 yy_compare_flat <- compare_years(ym_obs_freq, smooth_type = 'flat')
 
 # plot
