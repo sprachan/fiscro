@@ -2,3 +2,4 @@ processed_data/
 raw_ebd/
 filtered_data/
 *.out
+.Rhistory

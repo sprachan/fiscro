@@ -20,16 +20,14 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
                      lat_bin = 1:n) |>
             filter(year_mon == over) |>
             arrange(long_bin, lat_bin)
-    str(temp)
     temp <- matrix(temp$obs_freq, nrow = n, ncol = n, byrow = TRUE)
     return(temp)
-  }else if(nest_by = 'comparison'){
+  }else if(nest_by == 'comparison'){
     temp <- complete(temp, nesting(comparison),
-                     long_bin = 1:n,
-                     lat_bin = 1:n) |>
+     		     long_bin = 1:n,
+                     lat_bin = 1:n) |>		     
             filter(comparison == over) |>
             arrange(long_bin, lat_bin) 
-    str(temp)
     temp <- matrix(temp$transform_diff, nrow = n, ncol = n, byrow = TRUE)
     return(temp)
   }
@@ -127,12 +125,14 @@ compare_years <- function(data_in, smooth_type){
                                           )
               )
   n <- length(unique(x$comparison))
-  print(n*200*200)
-  str(x) # should have comparison, diff, transform_diff columns and n*200*200 rows
+  # add lat_bin, long_bin columns
+  x <- x |> mutate(long_bin = rep(rep(1:200, each = 200), n),
+                   lat_bin = rep(rep(1:200, times = 200), n))  
+
+  str(x) # should have comparison, diff, transform_diff, long_bin, lat_bin, columns and n*200*200 rows
   
   
   com <- unique(x$comparison)
-  print(length(com))
   y <- map(com, ~df_to_mat(x, over = .x, nest_by = 'comparison')) |>
        set_names(com)
   print('df to mat results')
@@ -146,7 +146,7 @@ compare_years <- function(data_in, smooth_type){
     stop('Need valid smooth type, either flat or geom')
   }
   
-  y <- set_names(y, coms)
+  y <- set_names(y, com)
   
   print('smooth results')
   str(y) # should again be a list of 200x200 matrices, named by the comparison
@@ -154,7 +154,7 @@ compare_years <- function(data_in, smooth_type){
   y <- y |> lapply(t) |>
             lapply(as.vector) |>
             # turn list of matrices into a dataframe: column 1 is comparison, column 2 is transformed difference in vectors
-            enframe(name = comparison, value = 'transform_diff') |>
+            enframe(name = 'comparison', value = 'transform_diff') |>
             unnest_longer(transform_diff)
   
   n <- length(unique(y$comparison))
@@ -162,13 +162,14 @@ compare_years <- function(data_in, smooth_type){
   # add lat_bin, long_bin columns
   y <- y |> mutate(long_bin = rep(rep(1:200, each = 200), n),
                    lat_bin = rep(rep(1:200, times = 200), n))  
-    
+   
+  str(y) 
     # reorder data: go sequentially by month within each year
-  y <- y |> arrange(year(year_mon), month(year_mon))
+  y <- y |> mutate(year_mon = as.yearmon(substring(comparison, 1, 8))) |>
+		   arrange(year(year_mon), month(year_mon))
     
     # make comparison into a factor, making sure its ordered correctly
   y$comparison <- factor(y$comparison, levels = unique(y$comparison), ordered = TRUE)
-  print(y$comparison)
   return(y)
 }
 
@@ -264,13 +265,13 @@ yms <- unique(ym_obs_freq$year_mon)
 yy_compare_flat <- compare_years(ym_obs_freq, smooth_type = 'flat')
 str(yy_compare_flat)
 
-flat_plot <- yy_compare_flat |> filter(comparison = 'Jan 2019_Jan 2020') |>
+flat_plot <- yy_compare_flat |> filter(comparison == 'Jan 2019_Jan 2020') |>
                    ggplot()+
                    geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
                    scale_fill_distiller(palette = 'RdBu', direction = -1, na.value = '#cccccc')
 
-fp <- file.path('~', 'eBird_project', 'plots', 'test_flat_yy', pdf)
-pdf(fp, width = 11, height = 8.5)
+fp <- file.path('~', 'eBird_project', 'plots', 'test_flat_yy')
+pdf(paste0(fp, '.pdf'), width = 11, height = 8.5)
 print(flat_plot)
 dev.off()
 
@@ -280,12 +281,12 @@ dev.off()
 yy_compare_geom <- compare_years(ym_obs_freq, smooth_type = 'geom')
 str(yy_compare_geom)
 
-geom_plot <- yy_compare_geom |> filter(comparison = 'Jan 2019_Jan 2020') |>
+geom_plot <- yy_compare_geom |> filter(comparison == 'Jan 2019_Jan 2020') |>
   ggplot()+
   geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
   scale_fill_distiller(palette = 'RdBu', direction = -1, na.value = '#cccccc')
 
-fp <- file.path('~', 'eBird_project', 'plots', 'test_geom_yy', pdf)
-pdf(fp, width = 11, height = 8.5)
+fp <- file.path('~', 'eBird_project', 'plots', 'test_geom_yy')
+pdf(paste0(fp, '.pdf'), width = 11, height = 8.5)
 print(geom_plot)
 dev.off()
