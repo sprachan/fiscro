@@ -1,13 +1,8 @@
-#=========================================================================
-#
 # This is some more advanced EDA on spatially unbiased data to look at
 # Species counts over space and time.
-#
-#=========================================================================
 
-#=========================================================================
-# Load dependencies and parse options 
-#==========================================================================
+# Load dependencies and parse options ==========================================
+
 library(tidyverse) # data manipulation tools
 library(viridis) # for color-blind friendly visuals
 library(zoo) # helpful for year_mon object and related tools
@@ -24,46 +19,56 @@ opt_parser = OptionParser(option_list = option_list);
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
 
-# functions=============================================================== 
-#=========================================================================
-
+# Functions ====================================================================
 # make it easier to save plots onto separate pages
-save_pages <- function(ggobj, type, directory, ncol, nrow, species, facets,
-		       page = 'portrait'){
-  all_plots <- list()
-  for(j in 1:ggforce::n_pages(ggobj))
-  {
-	p_save <- ggobj+ggforce::facet_wrap_paginate(facets = facets,
-                                                     ncol = ncol,
-                                                     nrow = nrow,
-    						     page = j)
-  	all_plots[[j]] <- p_save
-  }
+## plotting functions ----------------------------------------------------------
+save_pages <- function(ggobj, type, directory, ncol, nrow, species, facets){
+  all_plots <- lapply(1:ggforce::n_pages(ggobj), function(j){
+                      p_save <- ggobj+ggforce::facet_wrap_paginate(facets = facets,
+                                                                            ncol = ncol,
+                                                                            nrow = nrow,
+                                                                            page = j)
+                      return(p_save)
+                      }
+                      )
+  
   name <- paste0(species, '_', type, '.pdf')
+  
   fp <- file.path('~', 'eBird_project', 'plots', directory, species, name)
   pdf(fp, width = 11, height = 8.5)
-  for (k in seq_along(all_plots)) 
-  {
-       print(all_plots[[k]])
-  }
+  lapply(all_plots, print)
   dev.off()
 }
 
-# turn the dataframe to a matrix for easy use in lapply/maps
-df_to_mat <- function(df, ym, n = 200){
-  # make sure the data frame has every lat-long combination represented
-  temp <- ungroup(df) |>
-    complete(nesting(year_mon),
-             long_bin = 1:n,
-             lat_bin = 1:n
-    ) |>
-    filter(year_mon == ym) |>
-    arrange(long_bin, lat_bin)
-
-  # turn the data frame to a matrix
-  temp <- matrix(temp$obs_freq, nrow = n, ncol = n, byrow = TRUE)
-  return(temp)
+## smoothing functions ---------------------------------------------------------
+# smooth by applying a weighted average
+geom_smooth <- function(matrix_in, w = 0.75){
+  N <- length(matrix_in[1,])
+  out <- matrix(NA, nrow = N, ncol = N)
+  for(j in 1:N){
+    for(k in 1:N){
+      temp <- matrix_in
+      temp[j, k] <- NA
+      valid_rows <- (j-1):(j+1)
+      valid_rows <- valid_rows[(j-1):(j+1) >= 1 & (j-1):(j+1) <= N]
+      
+      valid_cols <- (k-1):(k+1)
+      valid_cols <- valid_cols[(k-1):(k+1) >= 1 & (k-1):(k+1) <= N]
+      neighbors <- temp[valid_rows, valid_cols]
+      n <- length(neighbors)-1
+      
+      # if current cell is NA, do a regular average
+      if(is.na(matrix_in[j, k])){
+        out[j, k] <- mean(matrix_in[valid_rows, valid_cols], na.rm = TRUE)
+      }else{
+        # otherwise, do the weighted average
+        out[j, k] <- w*matrix_in[j, k]+((1-w)/n)*sum(neighbors, na.rm = TRUE)
+      }
+    }
+  }
+  return(out)
 }
+
 
 # smooth the data by averaging a cell with its neighbors; does not
 #> propagate NA values.
@@ -71,7 +76,7 @@ flat_smooth <- function(matrix_in){
   # assumes a square matrix (which we have)
   N <- length(matrix_in[1,]) # should be 200
   out <- matrix(NA, nrow = N, ncol = N)
-
+  
   for(j in 1:N){
     for(k in 1:N){
       # do interior cells first
@@ -80,10 +85,10 @@ flat_smooth <- function(matrix_in){
       }else{
         valid_rows <- (j-1):(j+1)
         valid_rows <- valid_rows[(j-1):(j+1) >= 1 & (j-1):(j+1) <= N]
-
+        
         valid_cols <- (k-1):(k+1)
         valid_cols <- valid_cols[(k-1):(k+1) >= 1 & (k-1):(k+1) <= N]
-
+        
         out[j, k] <- mean(matrix_in[valid_rows, valid_cols], na.rm = TRUE)
       }
     }
@@ -91,10 +96,165 @@ flat_smooth <- function(matrix_in){
   return(out)
 }
 
-#=========================================================================
-# wrangle data and plot
-#=========================================================================
+## data manipulation functions -------------------------------------------------
+# turn the dataframe to a matrix for easy use in lapply/maps
+df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
+  temp <- ungroup(df)
+  if(nest_by == 'ym'){
+    temp <- complete(temp, 
+		     nesting(year_mon),
+                     long_bin = 1:n,
+                     lat_bin = 1:n) |>
+      filter(year_mon == over) |>
+      arrange(long_bin, lat_bin)
+    temp <- matrix(temp$obs_freq, nrow = n, ncol = n, byrow = TRUE)
+    return(temp)
+  }else if(nest_by == 'comparison'){
+    temp <- complete(temp, 
+		     nesting(comparison),
+                     long_bin = 1:n,
+                     lat_bin = 1:n) |>		     
+      filter(comparison == over) |>
+      arrange(long_bin, lat_bin) 
+    temp <- matrix(temp$transform_diff, nrow = n, ncol = n, byrow = TRUE)
+    return(temp)
+  }
+}
 
+# do year-on-year comparisons of the same month in subsequent years
+compare_years <- function(data_in, smooth_type){
+  yms <- unique(data_in$year_mon)
+  # make a data frame that has transformed differences
+  x <- map(yms, ~df_to_mat(data_in, over = .x, nest_by = 'ym')) |> 
+    set_names(yms) |> 
+    lapply(t) |>
+    lapply(as.vector) |> 
+    enframe(name = 'year_mon', value = 'obs_freq') |>
+    expand(nesting(year_mon = as.yearmon(year_mon),
+                   obs_freq),
+           nesting(year_mon2 = as.yearmon(year_mon),
+                   obs_freq2 = obs_freq)) |>
+    filter(year(year_mon) == year(year_mon2)-1,
+           month(year_mon) == month(year_mon2)) |>
+    mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
+           diff = map2(obs_freq2, obs_freq, `-`)) |>
+    select(-obs_freq, -obs_freq2, -year_mon, -year_mon2) |>
+    unnest_longer(diff) |>
+    mutate(diff = case_when(is.nan(diff) ~ NA,
+                            !is.nan(diff) ~ diff),
+          transform_diff = case_when(is.na(diff) ~ NA,
+                                     diff < 0 ~ -sqrt(abs(diff)),
+                                     diff == 0 ~ 0,
+                                     diff > 0 ~ sqrt(abs(diff)))
+          )
+  
+  n <- length(unique(x$comparison))
+  # add lat_bin, long_bin columns
+  x <- x |> mutate(long_bin = rep(rep(1:200, each = 200), n),
+                   lat_bin = rep(rep(1:200, times = 200), n))  
+  
+  com <- unique(x$comparison)
+  y <- map(com, ~df_to_mat(x, over = .x, nest_by = 'comparison')) |>
+       set_names(com)
+  if(smooth_type == 'flat'){
+    y <- map(y, flat_smooth)
+  }else if(smooth_type == 'geom'){
+    y <- map(y, geom_smooth) 
+  }else{
+    stop('Need valid smooth type, either flat or geom')
+  }
+  
+  y <- set_names(y, com) |>
+       lapply(t) |>
+       lapply(as.vector) |>
+       enframe(name = 'comparison', value = 'transform_diff') |>
+       unnest_longer(transform_diff) |>
+       mutate(transform_diff = case_when(is.nan(transform_diff) ~ NA,
+                                         !is.nan(transform_diff)~transform_diff)
+              )
+  
+  n <- length(unique(y$comparison))
+  # add lat_bin, long_bin columns
+  y <- y |> mutate(long_bin = rep(rep(1:200, each = 200), n),
+                   lat_bin = rep(rep(1:200, times = 200), n),
+                   year_mon = as.yearmon(substring(comparison, 1, 8)))|> 
+            arrange(year(year_mon), month(year_mon))
+  
+  # make comparison into a factor, making sure its ordered correctly
+  y$comparison <- factor(y$comparison, 
+                         levels = unique(y$comparison), 
+                         ordered = TRUE)
+  return(y)
+}
+
+# do month-on-month comparisons within a year for a given set of years
+compare_months <- function(data_in, years, smooth_type){
+  yms <- unique(data_in$year_mon)
+  
+  # make a data frame that has transformed differences
+  x <- map(yms, ~df_to_mat(data_in, over = .x, nest_by = 'ym')) |> 
+       set_names(yms) |> 
+       lapply(t) |>
+       lapply(as.vector) |> 
+       enframe(name = 'year_mon', value = 'obs_freq') |>
+       expand(nesting(year_mon = as.yearmon(year_mon),
+                      obs_freq),
+              nesting(year_mon2 = as.yearmon(year_mon),
+                      obs_freq2 = obs_freq)) |>
+       filter(year(year_mon) %in% years,
+              year(year_mon) == year(year_mon2),
+              month(year_mon) == month(year_mon2)-1) |>
+        mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
+               diff = map2(obs_freq2, obs_freq, `-`)) |>
+        select(-obs_freq, -obs_freq2, -year_mon, -year_mon2) |>
+        unnest_longer(diff) |>
+        mutate(diff = case_when(is.nan(diff) ~ NA,
+                               !is.nan(diff) ~ diff),
+               transform_diff = case_when(is.na(diff) ~ NA,
+                                          diff < 0 ~ -sqrt(abs(diff)),
+                                          diff == 0 ~ 0,
+                                          diff > 0 ~ sqrt(abs(diff)))
+              )
+  
+  n <- length(unique(x$comparison))
+  # add lat_bin, long_bin columns
+  x <- x |> mutate(long_bin = rep(rep(1:200, each = 200), n),
+                   lat_bin = rep(rep(1:200, times = 200), n))  
+  
+  com <- unique(x$comparison)
+  y <- map(com, ~df_to_mat(x, over = .x, nest_by = 'comparison')) |>
+       set_names(com)
+  if(smooth_type == 'flat'){
+    y <- map(y, flat_smooth)
+  }else if(smooth_type == 'geom'){
+    y <- map(y, geom_smooth) 
+  }else{
+    stop('Need valid smooth type, either flat or geom')
+  }
+  
+  y <- set_names(y, com) |>
+       lapply(t) |>
+       lapply(as.vector) |>
+       enframe(name = 'comparison', value = 'transform_diff') |>
+       unnest_longer(transform_diff) |>
+       mutate(transform_diff = case_when(is.nan(transform_diff) ~ NA,
+                                         !is.nan(transform_diff)~transform_diff)
+             )
+  
+  n <- length(unique(y$comparison))
+  # add lat_bin, long_bin columns
+  y <- y |> mutate(long_bin = rep(rep(1:200, each = 200), n),
+                   lat_bin = rep(rep(1:200, times = 200), n),
+                   year_mon = as.yearmon(substring(comparison, 1, 8)))|> 
+            arrange(year(year_mon), month(year_mon))
+  
+  # make comparison into a factor, making sure its ordered correctly
+  y$comparison <- factor(y$comparison, 
+                         levels = unique(y$comparison), 
+                         ordered = TRUE)
+  return(y)
+}
+# Wrangle data =================================================================
 # load data
 load('./processed_data/subsample.RData')
 
@@ -110,156 +270,257 @@ print('filtered')
 # process data
 ym_obs_freq <- mutate(subsample,
 		      year_mon = as.yearmon(observation_date)) |>
-	       group_by(year_mon, long_bin, lat_bin) |>
-	       summarize(obs_freq = sum(species_observed)/n())
+		      group_by(year_mon, long_bin, lat_bin) |>
+		      summarize(obs_freq = sum(species_observed)/n())
 print('summarized')
 
 # free up some RAM
 remove(subsample)
 
+#### this is commented out for now to save processing time because I have already 
+####> generated this plot
 
-# plot the unprocessed data
-month_plot <- ggplot(ym_obs_freq, aes(x = long_bin, y = lat_bin, fill = log10(obs_freq+0.1)))+
-	      geom_raster()+
-	      ggforce::facet_wrap_paginate(facets = vars(year_mon), ncol = 6, nrow = 4)+
-	      scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
-	      theme_bw()+
-	      theme(legend.direction = 'horizontal',
-                    legend.position = 'bottom')
-
-print('made raw month gg object')
-
-save_pages(month_plot, type = 'month_raw',
-           facets = vars(year_mon),
-	   ncol = 6,
-           nrow = 4,
-           species = opt$s,
-           directory = 'monthly',
-	   page = 'landscape')
-print('saved raw month plot')
-
-remove(month_plot)
-
-# turn the data into matrices and smooth
-yms <- unique(ym_obs_freq$year_mon)
-smooth_mats <- map(yms, ~ df_to_mat(ym_obs_freq, .x)) |>
-	       map(flat_smooth) |>
-	       set_names(yms)
-print('smoothed matrices created')
-# free up some RAM
-remove(ym_obs_freq)
-	       
-#=========================================================================
-# monthly distributions
-#=========================================================================
-
-# make the matrices into a data frame for plotting
-smoothed_df <- smooth_mats |>
-               lapply(t) |>
-               lapply(as.vector) |>
-              # put the vectors in a data frame with year_mon column and obs_freq
-              #> column; the obs_freq cells are vectors
-               enframe(name = 'year_mon', value = 'obs_freq') |>
-               unnest_longer('obs_freq') |>
-               mutate(obs_freq = case_when(is.nan(obs_freq) ~ NA,
-                                           is.na(obs_freq) ~ NA,
-                                           !is.na(obs_freq) ~ obs_freq))
-n <- length(unique(smoothed_df$year_mon))
-smoothed_df <- smoothed_df |> 
-               mutate(long_bin = rep(rep(1:200, each = 200), n),
-                      lat_bin = rep(rep(1:200, times = 200), n),
-                      year_mon = as.yearmon(year_mon)
-                      )
-
-# create ggplot object for smoothed data
-month_plot <- ggplot(data = smoothed_df, aes(x = long_bin, y = lat_bin, fill = log10(obs_freq+0.1)))+
-	      geom_raster()+
-	      ggforce::facet_wrap_paginate(facets = vars(year_mon), ncol = 6, nrow = 4)+
-	      scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
-	      theme_bw()+
-	      theme(legend.direction = 'horizontal',
-                    legend.position = 'bottom')
-	
-print('made ggplot object for months')
-
-# save smoothed plots
-save_pages(month_plot, type = 'month_smoothed',
-           facets = vars(year_mon),
-	   ncol = 6,
-           nrow = 4,
-           species = opt$s,
-           directory = 'monthly',
-	   page = 'landscape')
-
-# free up some RAM
-remove(month_plot)
+# # plot the unprocessed data
+# month_plot <- ggplot(ym_obs_freq, 
+#                      aes(x = long_bin, y = lat_bin, fill = log10(obs_freq+0.1)))+
+# 	            geom_raster()+
+# 	            ggforce::facet_wrap_paginate(facets = vars(year_mon), 
+# 	                                         ncol = 6, 
+# 	                                         nrow = 4)+
+# 	            scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+# 	            theme_bw()+
+# 	            theme(legend.direction = 'horizontal',
+#               legend.position = 'bottom')
+# 
+# print('made raw month gg object')
+# 
+# save_pages(month_plot, 
+#            type = 'month_raw',
+#            facets = vars(year_mon),
+# 	         ncol = 6,
+#            nrow = 4,
+#            species = opt$s,
+#            directory = 'monthly',
+# 	         page = 'landscape')
+# print('saved raw month plot')
+# 
+# remove(month_plot)
 
 
+# Flat Smoothing ===============================================================
+## prep and plot smoothed data -------------------------------------------------
 
-#=========================================================================
-# comparing distributions between months and years
-#=========================================================================
+# plot smoothed data; again, this is commented out to save time because
+#> these plots have been previously generated
+# smoothed_df <- map(yms, ~df_to_mat(yb_obs_freq, .x)) |>
+#                map(flat_smooth) |>
+#                set_names(yms) |>
+#                lapply(t) |>
+#                lapply(as.vector) |>
+#                enframe(name = 'year_mon', value = 'obs_freq') |>
+#                unnest_longer('obs_freq') |>
+#                mutate(obs_freq = case_when(is.nan(obs_freq) ~ NA,
+#                                            is.na(obs_freq) ~ NA,
+#                                            !is.na(obs_freq) ~ obs_freq))
+# n <- length(unique(smoothed_df$year_mon))
+# smoothed_df <- smoothed_df |> mutate(long_bin = rep(rep(1:200, each = 200), n),
+#                                      lat_bin = rep(rep(1:200, times = 200), n),
+#                                      year_mon = as.yearmon(year_mon)
+#                                      )    
+# 
+# # create ggplot object for smoothed data
+# month_plot <- ggplot(data = smoothed_df, 
+#                      aes(x = long_bin, y = lat_bin, fill = log10(obs_freq+0.1)))+
+#       	      geom_raster()+
+#       	      ggforce::facet_wrap_paginate(facets = vars(year_mon), ncol = 6, nrow = 4)+
+#       	      scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+#       	      theme_bw()+
+#       	      theme(legend.direction = 'horizontal',
+#                     legend.position = 'bottom')
+# 	
+# print('made ggplot object for months')
+# 
+# # save smoothed plots
+# save_pages(month_plot, type = 'month_smoothed',
+#            facets = vars(year_mon),
+# 	         ncol = 6,
+#            nrow = 4,
+#            species = opt$s,
+#            directory = 'monthly',
+# 	         page = 'landscape')
+# # free up some RAM
+# remove(month_plot)
 
-# subset the data to every other year
-years <- seq(2010, 2022, by = 2)
+## Year-on-Year comparisons ----------------------------------------------------
+## this is commented out to save computation time because I've done it once before
+# yy_compare_flat <- compare_years(ym_obs_freq, smooth_type = 'flat')
+# 
+# # plot
+# yy_plot <- ggplot(yy_compare_flat, 
+#                   aes(x = long_bin, 
+#                       y = lat_bin, 
+#                       fill = transform_diff))+
+#            geom_raster()+
+#            ggforce::facet_wrap_paginate(facets = vars(comparison), 
+#                                         nrow = 3, 
+#                                         ncol = 4)+
+#            scale_fill_distiller(palette = 'RdBu', 
+#                                 direction = -1, 
+#                                 na.value = '#cccccc')+
+#            theme_bw()+
+#            theme(legend.direction = 'horizontal',
+#                  legend.position = 'bottom')
+# print('created gg object for year-on-year comparisons')
+# 
+# save_pages(yy_plot, type = 'flat_smoothed_yy',
+#            facets = vars(comparison),
+#            nrow = 3,
+#            ncol = 4,
+#            species = opt$s,
+#            directory = 'comparisons')
+# print('saved pages for flat smoothed year-on-year comparisons')
+# 
+# remove(yy_plot)
+## Month-on-Month comparisons ----
+years <- c(2010, 2016, 2022)
+mm_compare_flat <- compare_months(ym_obs_freq, 
+                                  years = years, 
+                                  smooth_type = 'flat')
 
-evens <- year(as.yearmon(names(smooth_mats))) %in% years
-
-smooth_mats <- smooth_mats[evens]
-
-# get a data frame that has every 3-, 6-, and 9-month comparison (only in the
-#> forward time direction)
-mm_compare <- smooth_mats |> 
-              lapply(t) |>
-	      lapply(as.vector) |>
-	      enframe(name = 'year_mon', value = 'obs_freq') |>
-              expand(nesting(year_mon = as.yearmon(year_mon), obs_freq),
-                     nesting(year_mon2 = as.yearmon(year_mon), obs_freq2 = obs_freq)) |>
-	      filter(year(year_mon) <= year(year_mon2),
-                     month(year_mon) == month(year_mon2) & year(year_mon) != year(year_mon2) |
-                     month(year_mon) == month(year_mon2) - 3 |
-                     month(year_mon) == month(year_mon2) - 6 |
-                     month(year_mon) == month(year_mon2) - 9) |>
-	      mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
-                     diff = map2(obs_freq2, obs_freq, `-`)) |>
-              select(-obs_freq, -obs_freq2) |>
-              unnest_longer(diff) |>
-              mutate(diff = case_when(is.nan(diff) ~ NA,
-                                      !is.nan(diff) ~ diff),
-                     transform_diff = case_when(is.na(diff) ~ NA,
-                                                diff < 0 ~ -sqrt(abs(diff)),
-                                                diff == 0 ~ 0,
-                                                diff > 0 ~ sqrt(abs(diff))
-						)
-		     )
-print('monthly comparison df created')
-n <- length(unique(mm_compare$comparison)) 
-
-# add long_bin and lat_bin columns
-mm_compare <- mm_compare |>
-              mutate(long_bin = rep(rep(1:200, each = 200), n),
-                     lat_bin = rep(rep(1:200, times = 200), n))
-
-# reorder the comparison factor chronologically
-mm_compare$comparison <- factor(mm_compare$comparison,
-                                unique(mm_compare$comparison[order(mm_compare$year_mon, mm_compare$year_mon2, mm_compare$comparison)])
-				)
 # plot
-
-mm_plot <- ggplot(mm_compare, aes(x = long_bin, y = lat_bin, fill = transform_diff))+
+mm_plot <- ggplot(mm_compare_flat, 
+                  aes(x = long_bin, 
+                      y = lat_bin, 
+                      fill = transform_diff))+
            geom_raster()+
-	   ggforce::facet_wrap_paginate(facets = vars(comparison), nrow = 6, ncol = 6)+
-           scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+           ggforce::facet_wrap_paginate(facets = vars(comparison), 
+                                        nrow = 3, 
+                                        ncol = 4)+
+           scale_fill_distiller(palette = 'RdBu', 
+                                direction = -1, 
+                                na.value = '#cccccc')+
            theme_bw()+
            theme(legend.direction = 'horizontal',
                  legend.position = 'bottom')
-print('created gg object for monthly comparisons')
+print('created gg object for month-on-month comparisons')
 
-save_pages(mm_plot, type = 'smoothed_compared',
+save_pages(mm_plot, type = 'flat_smoothed_mm',
            facets = vars(comparison),
-	   ncol = 6,
-           nrow = 6,
+           nrow = 3,
+           ncol = 4,
            species = opt$s,
-           directory = 'comparisons',
-	   page = 'landscape')
+           directory = 'comparisons')
+print('saved pages for flat smoothed month-on-month comparisons')
 
+
+remove(mm_plot)
+
+# Geometric Smoothing ==========================================================
+## prep and plot smoothed data ----
+
+# plot smoothed data; again, this is commented out to save time because
+#> these plots have been previously generated
+# smoothed_df <- map(yms, ~df_to_mat(yb_obs_freq, .x)) |>
+#                map(geom_smooth) |>
+#                set_names(yms) |>
+#                lapply(t) |>
+#                lapply(as.vector) |>
+#                enframe(name = 'year_mon', value = 'obs_freq') |>
+#                unnest_longer('obs_freq') |>
+#                mutate(obs_freq = case_when(is.nan(obs_freq) ~ NA,
+#                                            is.na(obs_freq) ~ NA,
+#                                            !is.na(obs_freq) ~ obs_freq))
+# n <- length(unique(smoothed_df$year_mon))
+# smoothed_df <- smoothed_df |> mutate(long_bin = rep(rep(1:200, each = 200), n),
+#                                      lat_bin = rep(rep(1:200, times = 200), n),
+#                                      year_mon = as.yearmon(year_mon)
+#                                      )    
+# 
+# # create ggplot object for smoothed data
+# month_plot <- ggplot(data = smoothed_df, 
+#                      aes(x = long_bin, y = lat_bin, fill = log10(obs_freq+0.1)))+
+#       	      geom_raster()+
+#       	      ggforce::facet_wrap_paginate(facets = vars(year_mon), ncol = 6, nrow = 4)+
+#       	      scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+#       	      theme_bw()+
+#       	      theme(legend.direction = 'horizontal',
+#                     legend.position = 'bottom')
+# 	
+# print('made ggplot object for months')
+# 
+# # save smoothed plots
+# save_pages(month_plot, type = 'month_geom_smoothed',
+#            facets = vars(year_mon),
+# 	         ncol = 6,
+#            nrow = 4,
+#            species = opt$s,
+#            directory = 'monthly',
+# 	         page = 'landscape')
+# # free up some RAM
+# remove(month_plot)
+
+## Year-on-Year comparisons ----------------------------------------------------
+# commented this out to save computation time because I've done it before
+# yy_compare_geom <- compare_years(ym_obs_freq, smooth_type = 'geom')
+# 
+# # plot
+# yy_plot <- ggplot(yy_compare_geom, 
+#                   aes(x = long_bin, 
+#                       y = lat_bin, 
+#                       fill = transform_diff))+
+#            geom_raster()+
+#            ggforce::facet_wrap_paginate(facets = vars(comparison), 
+#                                         nrow = 3, 
+#                                         ncol = 4)+
+#            scale_fill_distiller(palette = 'RdBu', 
+#                                 direction = -1, 
+#                                 na.value = '#cccccc')+
+#            theme_bw()+
+#            theme(legend.direction = 'horizontal',
+#                  legend.position = 'bottom')
+# print('created gg object for year-on-year comparisons of geom smooth')
+# 
+# save_pages(yy_plot, 
+#            type = 'geom_smoothed_yy',
+#            facets = vars(comparison),
+#            nrow = 3,
+#            ncol = 4,
+#            species = opt$s,
+#            directory = 'comparisons')
+# print('saved pages for geom smoothed year-on-year comparisons')
+# 
+# remove(yy_plot)
+
+## Month-on-Month comparisons --------------------------------------------------
+years <- c(2010, 2015, 2022)
+mm_compare_geom <- compare_months(ym_obs_freq, 
+                                  years = years, 
+                                  smooth_type = 'geom')
+
+# plot
+mm_plot <- ggplot(mm_compare_geom, 
+                  aes(x = long_bin, 
+                      y = lat_bin, 
+                      fill = transform_diff))+
+           geom_raster()+
+           ggforce::facet_wrap_paginate(facets = vars(comparison), 
+                                        nrow = 3, 
+                                        ncol = 4)+
+           scale_fill_distiller(palette = 'RdBu', 
+                                direction = -1, 
+                                na.value = '#cccccc')+
+           theme_bw()+
+           theme(legend.direction = 'horizontal',
+                 legend.position = 'bottom')
+print('created gg object for month-on-month comparisons')
+
+save_pages(mm_plot, 
+           type = 'geom_smoothed_mm',
+           facets = vars(comparison),
+           nrow = 3,
+           ncol = 4,
+           species = opt$s,
+           directory = 'comparisons')
+print('saved pages for geom smoothed month-on-month comparisons')
+
+remove(mm_plot)
