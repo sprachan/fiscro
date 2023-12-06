@@ -17,6 +17,27 @@ save_pages <- function(ggobj, type, directory, ncol, nrow, species, facets){
   dev.off()
 }
 
+# special version of save_pages that breaks at every year. 
+save_pages_break <- function(data_in, ggobj,type, directory, ncol, nrow, species, facets){
+  years <- unique(year(data_in$year_mon))
+  all_plots <- lapply(1:length(years), function(j){
+    ggobj$data <- filter(data_in, year(year_mon) == years[j])
+    p_save <- ggobj+ggforce::facet_wrap_paginate(facets = facets,
+                                                 ncol = ncol,
+                                                 nrow = nrow,
+                                                 page = j)
+    return(p_save)
+  })
+  
+  
+  name <- paste0(species, '_', type, '.pdf')
+  
+  fp <- file.path('~', 'eBird_project', 'plots', directory, species, name)
+  pdf(fp, width = 11, height = 8.5)
+  lapply(all_plots, print)
+  dev.off()
+}
+
 # Smoothing Functions ==========================================================
 # smooth by applying a weighted average
 geom_smooth <- function(matrix_in, w = 0.75, scope = 1){
