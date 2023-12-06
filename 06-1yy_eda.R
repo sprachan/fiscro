@@ -42,7 +42,7 @@ print('summarized')
 # free up some RAM
 remove(subsample)
 
-# 
+# Flat Smooth ==================================================================
 yy_compare_flat <- smooth_compared_df(ym_obs_freq,
                                       comparison = 'y',
                                       years = years,
