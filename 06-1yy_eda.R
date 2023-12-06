@@ -96,3 +96,36 @@ save_pages(yy_plot, type = 'geom_smoothed_yy',
            species = opt$s,
            directory = 'comparisons')
 print('saved pages for geom smoothed year-on-year comparisons')
+remove(yy_plot)
+
+# Plot histograms of differences ===============================================
+yy_hist <- ggplot(yy_compare_flat,
+                  aes(x = transform_diff))+
+           geom_histogram(bins = 400)+
+           ggforce::facet_wrap_paginate(facets = vars(comparison),
+                                        nrow = 3,
+                                        ncol = 4)+
+           theme_bw()
+
+save_pages(yy_hist, type = 'flat_yy_hist',
+           facets = vars(comparison),
+           nrow = 3,
+           ncol = 4,
+           species = opt$s,
+           directory = 'comparisons')
+remove(yy_hist)
+
+yy_hist <- ggplot(yy_compare_geom,
+                  aes(x = transform_diff))+
+  geom_histogram(bins = 400)+
+  ggforce::facet_wrap_paginate(facets = vars(comparison),
+                               nrow = 3,
+                               ncol = 4)+
+  theme_bw()
+
+save_pages(yy_hist, type = 'geom_yy_hist',
+           facets = vars(comparison),
+           nrow = 3,
+           ncol = 4,
+           species = opt$s,
+           directory = 'comparisons')

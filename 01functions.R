@@ -58,11 +58,14 @@ flat_smooth <- function(matrix_in, scope = 1){
   
   for(j in 1:N){
     for(k in 1:N){
-      a = j-scope
-      b = j+scope
+      a <- j-scope
+      b <- j+scope
       valid_rows <- a:b
       valid_rows <- valid_rows[a:b >= 1 & a:b <= N]
-      valid_cols <- (k-1):(k+1)
+      
+      a <- k-scope
+      b <- k+scope
+      valid_cols <- a:b
       valid_cols <- valid_cols[a:b >= 1 & a:b <= N]
       
       out[j, k] <- mean(matrix_in[valid_rows, valid_cols], na.rm = TRUE)
