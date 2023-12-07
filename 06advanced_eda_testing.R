@@ -388,23 +388,9 @@ mm_compare_flat <- compare_months(ym_obs_freq,
                                   smooth_type = 'flat')
 print('flat smooth done')
 # plot
-mm_plot <- ggplot()+
-           geom_raster(aes(x = long_bin, 
-                           y = lat_bin, 
-                           fill = transform_diff))+
-           ggforce::facet_wrap_paginate(facets = vars(comparison), 
-                                        nrow = 3, 
-                                        ncol = 4)+
-           scale_fill_distiller(palette = 'RdBu', 
-                                direction = -1, 
-                                na.value = '#cccccc')+
-           theme_bw()+
-           theme(legend.direction = 'horizontal',
-                 legend.position = 'bottom')
-print('created gg object for month-on-month comparisons')
+
 
 save_pages_break(mm_compare_flat,
-                 mm_plot, 
                  type = 'flat_smoothed_mm',
                  facets = vars(comparison),
                  nrow = 3,
@@ -414,7 +400,6 @@ save_pages_break(mm_compare_flat,
 print('saved pages for flat smoothed month-on-month comparisons')
 
 
-remove(mm_plot)
 
 # Geometric Smoothing ==========================================================
 ## prep and plot smoothed data ----
@@ -498,23 +483,8 @@ mm_compare_geom <- compare_months(ym_obs_freq,
                                   smooth_type = 'geom')
 print('geom smooth done')
 # plot
-mm_plot <- ggplot()+
-           geom_raster(aes(x = long_bin, 
-                           y = lat_bin, 
-                           fill = transform_diff))+
-           ggforce::facet_wrap_paginate(facets = vars(comparison), 
-                                        nrow = 3, 
-                                        ncol = 4)+
-           scale_fill_distiller(palette = 'RdBu', 
-                                direction = -1, 
-                                na.value = '#cccccc')+
-           theme_bw()+
-           theme(legend.direction = 'horizontal',
-                 legend.position = 'bottom')
-print('created gg object for month-on-month comparisons')
 
 save_pages_break(mm_compare_geom,
-                 mm_plot, 
                  type = 'geom_smoothed_mm',
                  facets = vars(comparison),
                  nrow = 3,
@@ -523,4 +493,4 @@ save_pages_break(mm_compare_geom,
                  directory = 'comparisons')
 print('saved pages for geom smoothed month-on-month comparisons')
 
-remove(mm_plot)
+
