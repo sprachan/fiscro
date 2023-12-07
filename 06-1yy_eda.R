@@ -44,8 +44,9 @@ remove(subsample)
 
 # Smooth =======================================================================
 yy_compare_flat <- compare_years(ym_obs_freq, smooth_type = 'flat')
-
+print('flat smooth done')
 yy_compare_geom <- compare_years (ym_obs_freq, 'geom')
+print('geom smooth done')
 
 # Plot as maps =================================================================
 # yy_plot <- ggplot(yy_compare_flat,

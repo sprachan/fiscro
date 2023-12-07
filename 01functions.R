@@ -18,14 +18,16 @@ save_pages <- function(ggobj, type, directory, ncol, nrow, species, facets){
 }
 
 # special version of save_pages that breaks at every year. 
-save_pages_break <- function(data_in, ggobj,type, directory, ncol, nrow, species, facets){
+save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, species, facets){
   years <- unique(year(data_in$year_mon))
   all_plots <- lapply(1:length(years), function(j){
-    ggobj$data <- filter(data_in, year(year_mon) == years[j])
-    p_save <- ggobj+ggforce::facet_wrap_paginate(facets = facets,
-                                                 ncol = ncol,
-                                                 nrow = nrow,
-                                                 page = j)
+    p_save <- filter(data_in, year(year_mon) == years[j]) |> 
+         ggplot()+
+         geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
+         ggforce::facet_wrap_paginate(facets = facets,
+                                      ncol = ncol,
+                                      nrow = nrow,
+                                      page = j)
     return(p_save)
   })
   
@@ -46,13 +48,15 @@ geom_smooth <- function(matrix_in, w = 0.75, scope = 1){
   for(j in 1:N){
     for(k in 1:N){
       temp <- matrix_in
-      a = j-scope
-      b = j+scope
+      a <- j-scope
+      b <- j+scope
       temp[j, k] <- NA
       valid_rows <- a:b
       valid_rows <- valid_rows[a:b >= 1 & a:b <= N]
       
-      valid_cols <- (k-1):(k+1)
+      a <- k-scope
+      b <- k+scope
+      valid_cols <- a:b
       valid_cols <- valid_cols[a:b >= 1 & a:b <= N]
       neighbors <- temp[valid_rows, valid_cols]
       n <- length(neighbors)-1

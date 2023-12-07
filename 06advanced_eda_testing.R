@@ -386,7 +386,7 @@ remove(subsample)
 mm_compare_flat <- compare_months(ym_obs_freq, 
                                   years = years, 
                                   smooth_type = 'flat')
-
+print('flat smooth done')
 # plot
 mm_plot <- ggplot()+
            geom_raster(aes(x = long_bin, 
@@ -496,7 +496,7 @@ remove(mm_plot)
 mm_compare_geom <- compare_months(ym_obs_freq, 
                                   years = years, 
                                   smooth_type = 'geom')
-
+print('geom smooth done')
 # plot
 mm_plot <- ggplot()+
            geom_raster(aes(x = long_bin, 
