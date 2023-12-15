@@ -20,16 +20,23 @@ save_pages <- function(ggobj, type, directory, ncol, nrow, species, facets){
 # special version of save_pages that breaks at every year. 
 save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, species, facets){
   years <- unique(year(data_in$year_mon))
-  all_plots <- lapply(1:length(years), function(j){
-    p_save <- filter(data_in, year(year_mon) == years[j]) |> 
-         ggplot()+
-         geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
-         ggforce::facet_wrap_paginate(facets = facets,
-                                      ncol = ncol,
-                                      nrow = nrow,
-                                      page = j)
-    return(p_save)
-  })
+  p_save <- list()
+  for(j in 1:length(years)){
+    p_save[[j]] <- filter(data_in, year(year_mon == years[j])) |>
+              ggplot()+
+              geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
+              facet_wrap(facets = facets, ncol = ncol, nrow = nrow)
+  }
+  # all_plots <- lapply(1:length(years), function(j){
+  #   p_save <- filter(data_in, year(year_mon) == years[j]) |> 
+  #        ggplot()+
+  #        geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
+  #        ggforce::facet_wrap_paginate(facets = facets,
+  #                                     ncol = ncol,
+  #                                     nrow = nrow,
+  #                                     page = j)
+  #   return(p_save)
+  # })
   
   
   name <- paste0(species, '_', type, '.pdf')
