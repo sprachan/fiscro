@@ -22,7 +22,7 @@ save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, speci
   years <- unique(year(data_in$year_mon))
   p_save <- list()
   for(j in 1:length(years)){
-    p_save[[j]] <- filter(data_in, year(year_mon == years[j])) |>
+    p_save[[j]] <- filter(data_in, year(year_mon) == years[j]) |>
               ggplot()+
               geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
               facet_wrap(facets = facets, ncol = ncol, nrow = nrow)
