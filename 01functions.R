@@ -43,7 +43,7 @@ save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, speci
   
   fp <- file.path('~', 'eBird_project', 'plots', directory, species, name)
   pdf(fp, width = 11, height = 8.5)
-  lapply(all_plots, print)
+  lapply(p_save, print)
   dev.off()
 }
 
