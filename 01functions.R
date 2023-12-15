@@ -25,7 +25,13 @@ save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, speci
     p_save[[j]] <- filter(data_in, year(year_mon) == years[j]) |>
               ggplot()+
               geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
-              facet_wrap(facets = facets, ncol = ncol, nrow = nrow)
+              facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
+              scale_fill_distiller(palette = 'RdBu', 
+                                   direction = -1, 
+                                   na.value = '#cccccc')+
+                                   theme_bw()+
+                                   theme(legend.direction = 'horizontal',
+                                         legend.position = 'bottom')
   }
   # all_plots <- lapply(1:length(years), function(j){
   #   p_save <- filter(data_in, year(year_mon) == years[j]) |> 
