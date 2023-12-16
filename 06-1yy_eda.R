@@ -100,7 +100,8 @@ print('geom smooth done')
 # remove(yy_plot)
 
 # Plot histograms of differences ===============================================
-yy_hist <- mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
+yy_hist <- yy_compare_flat |>
+           mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
                                              .default = transform_diff)) |>
            ggplot(aes(x = transform_diff))+
            geom_histogram(bins = 400)+
@@ -117,7 +118,8 @@ save_pages(yy_hist, type = 'flat_yy_hist',
            directory = 'comparisons')
 remove(yy_hist)
 
-yy_hist <- mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
+yy_hist <- yy_compare_flat |>
+           mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
                                              .default = transform_diff)) |>
            ggplot(aes(x = transform_diff))+
            geom_histogram(bins = 400)+
