@@ -18,21 +18,35 @@ save_pages <- function(ggobj, type, directory, ncol, nrow, species, facets){
 }
 
 # special version of save_pages that breaks at every year. 
-save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, species, facets){
+save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, species, facets, plot_type = 'map'){
   years <- unique(year(data_in$year_mon))
   p_save <- list()
-  for(j in 1:length(years)){
-    p_save[[j]] <- filter(data_in, year(year_mon) == years[j]) |>
-              ggplot()+
-              geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
-              facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
-              scale_fill_distiller(palette = 'RdBu', 
-                                   direction = -1, 
-                                   na.value = '#cccccc')+
-                                   theme_bw()+
-                                   theme(legend.direction = 'horizontal',
-                                         legend.position = 'bottom')
+  if(plot_type == 'map'){
+    for(j in 1:length(years)){
+      p_save[[j]] <- filter(data_in, year(year_mon) == years[j]) |>
+        ggplot()+
+        geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
+        facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
+        scale_fill_distiller(palette = 'RdBu', 
+                             direction = -1, 
+                             na.value = '#cccccc')+
+        theme_bw()+
+        theme(legend.direction = 'horizontal',
+              legend.position = 'bottom')
+    }
+  }else if(plot_type == 'hist'){
+    temp <- data_in |>
+            mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
+                                              .default = transform_diff))
+    for(j in 1:length(years)){
+      p_save[[j]] <- filter(temp, year(year_mon) == years[j]) |>
+        ggplot()+
+        geom_histogram(aes(x = transform_diff), bins = 200)+
+        facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
+        theme_bw()
+    }
   }
+
   
   
   name <- paste0(species, '_', type, '.pdf')

@@ -104,7 +104,7 @@ yy_hist <- yy_compare_flat |>
            mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
                                              .default = transform_diff)) |>
            ggplot(aes(x = transform_diff))+
-           geom_histogram(bins = 400)+
+           geom_histogram(bins = 200)+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
                                         ncol = 4)+
@@ -118,11 +118,11 @@ save_pages(yy_hist, type = 'flat_yy_hist',
            directory = 'comparisons')
 remove(yy_hist)
 
-yy_hist <- yy_compare_flat |>
+yy_hist <- yy_compare_geom |>
            mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
                                              .default = transform_diff)) |>
            ggplot(aes(x = transform_diff))+
-           geom_histogram(bins = 400)+
+           geom_histogram(bins = 200)+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
                                         ncol = 4)+
