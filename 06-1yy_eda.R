@@ -102,8 +102,7 @@ print('geom smooth done')
 # Plot histograms of differences ===============================================
 yy_hist <- mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
                                              .default = transform_diff)) |>
-           ggplot(yy_compare_flat,
-                  aes(x = transform_diff))+
+           ggplot(aes(x = transform_diff))+
            geom_histogram(bins = 400)+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
@@ -118,13 +117,14 @@ save_pages(yy_hist, type = 'flat_yy_hist',
            directory = 'comparisons')
 remove(yy_hist)
 
-yy_hist <- ggplot(yy_compare_geom,
-                  aes(x = transform_diff))+
-  geom_histogram(bins = 400)+
-  ggforce::facet_wrap_paginate(facets = vars(comparison),
-                               nrow = 3,
-                               ncol = 4)+
-  theme_bw()
+yy_hist <- mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
+                                             .default = transform_diff)) |>
+           ggplot(aes(x = transform_diff))+
+           geom_histogram(bins = 400)+
+           ggforce::facet_wrap_paginate(facets = vars(comparison),
+                                        nrow = 3,
+                                        ncol = 4)+
+           theme_bw()
 
 save_pages(yy_hist, type = 'geom_yy_hist',
            facets = vars(comparison),

@@ -33,16 +33,6 @@ save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, speci
                                    theme(legend.direction = 'horizontal',
                                          legend.position = 'bottom')
   }
-  # all_plots <- lapply(1:length(years), function(j){
-  #   p_save <- filter(data_in, year(year_mon) == years[j]) |> 
-  #        ggplot()+
-  #        geom_raster(aes(x = long_bin, y = lat_bin, fill = transform_diff))+
-  #        ggforce::facet_wrap_paginate(facets = facets,
-  #                                     ncol = ncol,
-  #                                     nrow = nrow,
-  #                                     page = j)
-  #   return(p_save)
-  # })
   
   
   name <- paste0(species, '_', type, '.pdf')
