@@ -57,6 +57,16 @@ save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, speci
   dev.off()
 }
 
+cutoff_plot <- function(data_in, cutoff){
+  p <- data_in |> dplyr::mutate(over = dplyr::case_when(obs_freq < cutoff ~ 'No',
+                                                   obs_freq >= cutoff ~ 'Yes'),
+                                over = as.factor(over)) |>
+                   ggplot2::ggplot(ggplot2::aes(x = long_bin, y = lat_bin, fill = over))+
+                   ggplot2::geom_raster()+
+                   ggplot2::scale_fill_manual(values = c('white', 'black'))
+  return(p)
+}
+
 # Smoothing Functions ==========================================================
 # smooth by applying a weighted average
 geom_smooth <- function(matrix_in, w = 0.75, scope = 1){
