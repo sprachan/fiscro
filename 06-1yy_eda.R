@@ -6,6 +6,7 @@ library(tidyverse) # data manipulation tools
 library(viridis) # for color-blind friendly visuals
 library(zoo) # helpful for year_mon object and related tools
 library(optparse) # for flexibility in options when called through command line
+
 # get options
 option_list <- list(
   make_option(c('-s', '--speciesCode'), type = 'character',
@@ -45,6 +46,7 @@ remove(subsample)
 # Smooth =======================================================================
 yy_compare_flat <- compare_years(ym_obs_freq, smooth_type = 'flat')
 print('flat smooth done')
+
 yy_compare_geom <- compare_years (ym_obs_freq, 'geom')
 print('geom smooth done')
 

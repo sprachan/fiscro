@@ -196,7 +196,7 @@ save_pages_break(mm_compare_flat,
                  ncol = 4,
                  species = opt$s,
                  directory = 'comparisons',
-                 plot_type = 'hists')
+                 plot_type = 'hist')
 
 
 save_pages_break(mm_compare_geom,
