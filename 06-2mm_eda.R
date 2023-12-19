@@ -121,14 +121,14 @@ mm_compare_flat <- compare_months(ym_obs_freq,
                                   years = years,
                                   smooth_type = 'flat')
 # 
-# # plot
-# save_pages_break(mm_compare_flat, type = 'flat_smoothed_mm',
-#                  facets = vars(comparison),
-#                  nrow = 3,
-#                  ncol = 4,
-#                  species = opt$s,
-#                  directory = 'comparisons')
-# print('saved pages for flat smoothed month-on-month comparisons')
+# plot
+save_pages_break(mm_compare_flat, type = 'flat_smoothed_mm',
+                 facets = vars(comparison),
+                 nrow = 3,
+                 ncol = 4,
+                 species = opt$s,
+                 directory = 'comparisons')
+print('saved pages for flat smoothed month-on-month comparisons')
 
 # Geometric Smoothing ==========================================================
 ## prep and plot smoothed data ----
@@ -179,31 +179,31 @@ mm_compare_geom <- compare_months(ym_obs_freq,
                                   smooth_type = 'geom')
 
 # plot
-# save_pages_break(mm_compare_geom, 
-#                  type = 'geom_smoothed_mm',
+save_pages_break(mm_compare_geom,
+                 type = 'geom_smoothed_mm',
+                 facets = vars(comparison),
+                 nrow = 3,
+                 ncol = 4,
+                 species = opt$s,
+                 directory = 'comparisons')
+print('saved pages for geom smoothed month-on-month comparisons')
+
+# Plot histograms of differences ===============================================
+# save_pages_break(mm_compare_flat,
+#                  type = 'flat_mm_hist',
 #                  facets = vars(comparison),
 #                  nrow = 3,
 #                  ncol = 4,
 #                  species = opt$s,
-#                  directory = 'comparisons')
-# print('saved pages for geom smoothed month-on-month comparisons')
-
-# Plot histograms of differences ===============================================
-save_pages_break(mm_compare_flat,
-                 type = 'flat_mm_hist',
-                 facets = vars(comparison),
-                 nrow = 3,
-                 ncol = 4,
-                 species = opt$s,
-                 directory = 'comparisons',
-                 plot_type = 'hist')
-
-
-save_pages_break(mm_compare_geom,
-                 type = 'geom_mm_hist',
-                 facets = vars(comparison),
-                 nrow = 3,
-                 ncol = 4,
-                 species = opt$s,
-                 directory = 'comparisons',
-                 plot_type = 'hist')
+#                  directory = 'comparisons',
+#                  plot_type = 'hist')
+# 
+# 
+# save_pages_break(mm_compare_geom,
+#                  type = 'geom_mm_hist',
+#                  facets = vars(comparison),
+#                  nrow = 3,
+#                  ncol = 4,
+#                  species = opt$s,
+#                  directory = 'comparisons',
+#                  plot_type = 'hist')
