@@ -68,8 +68,7 @@ save_pages(month_plot,
 	         ncol = 6,
            nrow = 4,
            species = opt$s,
-           directory = 'monthly',
-	         page = 'landscape')
+           directory = 'monthly')
 print('saved raw month plot')
 
 remove(month_plot)
@@ -113,8 +112,7 @@ save_pages(month_plot, type = 'month_smoothed',
 	         ncol = 6,
            nrow = 4,
            species = opt$s,
-           directory = 'monthly',
-	         page = 'landscape')
+           directory = 'monthly')
 # free up some RAM
 remove(month_plot)
 
@@ -171,8 +169,7 @@ save_pages(month_plot, type = 'month_geom_smoothed',
 	         ncol = 6,
            nrow = 4,
            species = opt$s,
-           directory = 'monthly',
-	         page = 'landscape')
+           directory = 'monthly')
 # free up some RAM
 remove(month_plot)
 
