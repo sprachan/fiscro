@@ -45,7 +45,7 @@ print('summarized')
 remove(subsample)
 
 # Plot =========================================================================
-phis <- c(1e-3,0.2, 0.4, 0.6, 0.8, 0.999)
+phis <- c(1e-3, 0.3, 0.6, 0.999)
 
 plots <- map(phis, \(x) cutoff_plot(data_in = ym_obs_freq, 
                                     cutoff = x, 
@@ -57,5 +57,5 @@ name <- paste0(species, '.pdf')
 
 fp <- file.path('~', 'eBird_project', 'plots', 'cutoffs', species, name)
 pdf(fp, width = 11, height = 8.5)
-  patchwork::wrap_plots(plots, nrow = 3, ncol = 2)
+  patchwork::wrap_plots(plots, nrow = 2, ncol = 2)
 dev.off()
