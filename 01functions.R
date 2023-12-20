@@ -58,6 +58,7 @@ save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, speci
 }
 
 cutoff_plot <- function(data_in, cutoff, title){
+  legend_lab <- paste0('OF over ', title)
   p <- data_in |> dplyr::mutate(over = dplyr::case_when(obs_freq < cutoff ~ 'No',
                                                    obs_freq >= cutoff ~ 'Yes'),
                                 over = as.factor(over)) |>
@@ -66,7 +67,7 @@ cutoff_plot <- function(data_in, cutoff, title){
                    ggplot2::theme_bw()+
                    ggplot2::theme(panel.background = ggplot2::element_rect(fill = '#555555'))+
                    ggplot2::scale_fill_manual(values = c('white', 'black'))+
-                   ggplot2::labs(fill = cat('Over ', title, sep = ''))
+                   ggplot2::labs(fill = legend_lab)
   return(p)
 }
 
