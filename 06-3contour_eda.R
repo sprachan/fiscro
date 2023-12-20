@@ -54,7 +54,7 @@ plots <- map(phis, \(x) cutoff_plot(data_in = ym_obs_freq,
          set_names(phis)
 
 species <- opt$s
-name <- paste0(species, '_cutoff', .pdf)
+name <- paste0(species, '_cutoff', '.pdf')
 
 fp <- file.path('~', 'eBird_project', 'plots', 'cutoffs', species, name)
 pdf(fp, width = 11, height = 8.5)
@@ -66,7 +66,7 @@ p <- ggplot(ym_obs_freq, aes(x = long_bin, y = lat_bin, z = obs_freq))+
      geom_contour_filled()+
      scale_fill_viridis_d(option = 'B')
 
-name <- paste0(species, '_contour', .pdf)
+name <- paste0(species, '_contour', '.pdf')
 
 fp <- file.path('~', 'eBird_project', 'plots', 'cutoffs', species, name)
 pdf(fp, width = 11, height = 8.5)
