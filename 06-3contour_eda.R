@@ -57,5 +57,5 @@ name <- paste0(species, '.pdf')
 
 fp <- file.path('~', 'eBird_project', 'plots', 'cutoffs', species, name)
 pdf(fp, width = 11, height = 8.5)
-  patchwork::wrap_plots(plots, nrow = 2, ncol = 3)
+  patchwork::wrap_plots(plots, nrow = 3, ncol = 2)
 dev.off()
