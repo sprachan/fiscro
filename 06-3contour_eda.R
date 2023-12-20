@@ -45,7 +45,7 @@ print('summarized')
 remove(subsample)
 
 # Plot =========================================================================
-phis <- c(1e-3, 0.3, 0.6, 0.999)
+phis <- c(0.999, 0.6, 0.3, 1e-3)
 
 plots <- map(phis, \(x) cutoff_plot(data_in = ym_obs_freq, 
                                     cutoff = x, 

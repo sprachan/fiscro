@@ -61,7 +61,7 @@ cutoff_plot <- function(data_in, cutoff, title){
   legend_lab <- paste0('OF over ', title)
   p <- data_in |> dplyr::mutate(over = dplyr::case_when(obs_freq < cutoff ~ 'No',
                                                    obs_freq >= cutoff ~ 'Yes'),
-                                over = as.factor(over)) |>
+                                over = ordered(over, levels = c('No', 'Yes'))) |>
                    ggplot2::ggplot(ggplot2::aes(x = long_bin, y = lat_bin, fill = over))+
                    ggplot2::geom_raster()+
                    ggplot2::theme_bw()+
