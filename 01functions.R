@@ -66,8 +66,7 @@ cutoff_plot <- function(data_in, cutoff, title){
                    ggplot2::theme_bw()+
                    ggplot2::theme(panel.background = ggplot2::element_rect(fill = '#555555'))+
                    ggplot2::scale_fill_manual(values = c('white', 'black'))+
-                   ggplot2::labs(title = title,
-                                 fill = cat('Over ', title, sep = ''))
+                   ggplot2::labs(fill = cat('Over ', title, sep = ''))
   return(p)
 }
 
