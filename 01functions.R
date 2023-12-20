@@ -64,9 +64,10 @@ cutoff_plot <- function(data_in, cutoff, title){
                    ggplot2::ggplot(ggplot2::aes(x = long_bin, y = lat_bin, fill = over))+
                    ggplot2::geom_raster()+
                    ggplot2::theme_bw()+
-                   ggplot2::scale_fill_manual(values = c('white', 'black'),
-                                              na.value = '#666666')+
-                   ggplot2::labs(title = title)
+                   ggplot2::theme(panel.background = ggplot2::element_rect(fill = '#555555'))+
+                   ggplot2::scale_fill_manual(values = c('white', 'black'))+
+                   ggplot2::labs(title = title,
+                                 fill = cat('Over ', title, sep = ''))
   return(p)
 }
 
