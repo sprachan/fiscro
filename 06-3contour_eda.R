@@ -45,9 +45,11 @@ print('summarized')
 remove(subsample)
 
 # Plot =========================================================================
-phis <- c(1e-3, 1e-2, 0.1, 0.5, 0.75)
+phis <- c(0.95, 0.75, 0.5, 0.1, 1e-3)
 
-plots <- map(phis, \(x) cutoff_plot(data_in = ym_obs_freq, cutoff = x)) |>
+plots <- map(phis, \(x) cutoff_plot(data_in = ym_obs_freq, 
+                                    cutoff = x, 
+                                    title = as.character(x))) |>
          set_names(phis)
 
 species <- opt$s
