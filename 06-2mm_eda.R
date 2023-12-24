@@ -26,9 +26,9 @@ species <- opt$s
 # functions
 source('01functions.R')
 
-# baseline file path for plots (change this if running on different system)
-fp <- file.path('~', 'Library', 'CloudStorage', 'OneDrive-BowdoinCollege', 'ebird_plots')
-
+# baseline file path for plots (change this if/when running on different system)
+#fp <- file.path('~', 'Library', 'CloudStorage', 'OneDrive-BowdoinCollege', 'ebird_plots')
+fp <- file.path('~', 'eBird_project', 'plots', species)
 
 # Wrangle data =================================================================
 # load data
