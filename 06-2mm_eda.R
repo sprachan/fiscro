@@ -7,10 +7,13 @@ library(tidyverse) # data manipulation tools
 library(viridis) # for color-blind friendly visuals
 library(zoo) # helpful for year_mon object and related tools
 library(optparse) # for flexibility in options when called through command line
+
 # get options
 option_list <- list(
-  make_option(c('-s', '--speciesCode'), type = 'character',
-              action = 'store', help = 'species for analysis')
+  make_option(c('-s', '--speciesCode'), 
+              type = 'character',
+              action = 'store', 
+              help = 'species for analysis')
 )
 
 # create a parser object
@@ -19,7 +22,13 @@ opt_parser = OptionParser(option_list = option_list);
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
 
+species <- opt$s
+# functions
 source('01functions.R')
+
+# baseline file path for plots (change this if running on different system)
+fp <- file.path('~', 'Library', 'CloudStorage', 'OneDrive-BowdoinCollege', 'ebird_plots')
+
 
 # Wrangle data =================================================================
 # load data
@@ -30,25 +39,24 @@ print('loaded')
 # filter data
 years <- seq(2010, 2022, by = 1)
 subsample <- filter(subsample, 
-		    year(observation_date) %in% years,
-		    species_code == opt$s)
+            		    year(observation_date) %in% years,
+            		    species_code == species)
 print('filtered')
 
 # process data
 ym_obs_freq <- mutate(subsample,
-		      year_mon = as.yearmon(observation_date)) |>
-		      group_by(year_mon, long_bin, lat_bin) |>
-		      summarize(obs_freq = sum(species_observed)/n())
+            		      year_mon = as.yearmon(observation_date)) |>
+            		      group_by(year_mon, long_bin, lat_bin) |>
+            		      summarize(obs_freq = sum(species_observed)/n())
 print('summarized')
 yms <- unique(year(ym_obs_freq$year_mon))
 
 # free up some RAM
 remove(subsample)
 
-#### this is commented out for now to save processing time because I have already 
-####> generated this plot
+
 eps <- 1e-4
-# Plot unprocessed data
+# Plot unprocessed data ========================================================
 month_plot <- ggplot(ym_obs_freq,
                      aes(x = long_bin, y = lat_bin, fill = log10(obs_freq+eps)))+
 	            geom_raster()+
@@ -66,12 +74,11 @@ print('made raw month gg object')
 
 
 save_pages(month_plot,
-           type = 'month_raw',
-           facets = vars(year_mon),
-	         ncol = 6,
+           path = file.path(fp, 'monthly'),
+           name = paste0(species, '_month_raw.pdf'),
+           ncol = 6,
            nrow = 4,
-           species = opt$s,
-           directory = 'monthly')
+           facets = vars(year_mon))
 print('saved raw month plot')
 
 remove(month_plot)
@@ -110,12 +117,13 @@ month_plot <- ggplot(data = smoothed_df,
 print('made ggplot object for months')
 
 # save smoothed plots
-save_pages(month_plot, type = 'month_smoothed',
-           facets = vars(year_mon),
-	         ncol = 6,
+save_pages(month_plot,
+           path = file.path(fp, 'monthly'),
+           name = paste0(species, '_month_smoothed.pdf'),
+           ncol = 6,
            nrow = 4,
-           species = opt$s,
-           directory = 'monthly')
+           facets = vars(year_mon))
+
 # free up some RAM
 remove(month_plot)
 
@@ -167,12 +175,12 @@ month_plot <- ggplot(data = smoothed_df,
 print('made ggplot object for months')
 
 # save smoothed plots
-save_pages(month_plot, type = 'month_geom_smoothed',
-           facets = vars(year_mon),
-	         ncol = 6,
+save_pages(month_plot,
+           path = file.path(fp, 'monthly'),
+           name = paste0(species, '_month_geom_smoothed.pdf'),
+           ncol = 6,
            nrow = 4,
-           species = opt$s,
-           directory = 'monthly')
+           facets = vars(year_mon))
 # free up some RAM
 remove(month_plot)
 
