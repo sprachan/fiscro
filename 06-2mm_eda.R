@@ -145,7 +145,7 @@ remove(month_plot)
 ## prep and plot smoothed data ----
 
 # plot smoothed data
-smoothed_df <- map(yms, ~df_to_mat(yb_obs_freq, .x)) |>
+smoothed_df <- map(yms, ~df_to_mat(ym_obs_freq, .x)) |>
                map(geom_smooth) |>
                set_names(yms) |>
                lapply(t) |>
