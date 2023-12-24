@@ -40,6 +40,7 @@ ym_obs_freq <- mutate(subsample,
 		      group_by(year_mon, long_bin, lat_bin) |>
 		      summarize(obs_freq = sum(species_observed)/n())
 print('summarized')
+yms <- unique(year(ym_obs_freq$year_mon))
 
 # free up some RAM
 remove(subsample)
@@ -77,7 +78,7 @@ remove(month_plot)
 # Flat Smoothing ===============================================================
 ## prep and plot smoothed data -------------------------------------------------
 # prep smoothed data
-smoothed_df <- map(yms, ~df_to_mat(yb_obs_freq, .x)) |>
+smoothed_df <- map(yms, ~df_to_mat(ym_obs_freq, .x)) |>
                map(flat_smooth) |>
                set_names(yms) |>
                lapply(t) |>
@@ -117,18 +118,18 @@ save_pages(month_plot, type = 'month_smoothed',
 remove(month_plot)
 
 # ## Month-on-Month comparisons ----
-mm_compare_flat <- compare_months(ym_obs_freq,
-                                  years = years,
-                                  smooth_type = 'flat')
-# 
-# plot
-save_pages_break(mm_compare_flat, type = 'flat_smoothed_mm',
-                 facets = vars(comparison),
-                 nrow = 3,
-                 ncol = 4,
-                 species = opt$s,
-                 directory = 'comparisons')
-print('saved pages for flat smoothed month-on-month comparisons')
+# mm_compare_flat <- compare_months(ym_obs_freq,
+#                                   years = years,
+#                                   smooth_type = 'flat')
+# # 
+# # plot
+# save_pages_break(mm_compare_flat, type = 'flat_smoothed_mm',
+#                  facets = vars(comparison),
+#                  nrow = 3,
+#                  ncol = 4,
+#                  species = opt$s,
+#                  directory = 'comparisons')
+# print('saved pages for flat smoothed month-on-month comparisons')
 
 # Geometric Smoothing ==========================================================
 ## prep and plot smoothed data ----
