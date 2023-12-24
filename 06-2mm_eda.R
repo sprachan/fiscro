@@ -63,6 +63,8 @@ month_plot <- ggplot(ym_obs_freq,
 
 print('made raw month gg object')
 
+
+
 save_pages(month_plot,
            type = 'month_raw',
            facets = vars(year_mon),
