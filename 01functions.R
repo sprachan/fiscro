@@ -1,5 +1,8 @@
 # Plotting Functions ===========================================================
 save_pages <- function(ggobj, path, name, ncol, nrow, facets){
+  # error catching
+  stopifnot('name must include .pdf' = grepl('.pdf', name))
+  
   all_plots <- lapply(1:ggforce::n_pages(ggobj), function(j){
     p_save <- ggobj+ggforce::facet_wrap_paginate(facets = facets,
                                                  ncol = ncol,
@@ -16,6 +19,11 @@ save_pages <- function(ggobj, path, name, ncol, nrow, facets){
 
 # special version of save_pages that breaks at every year. 
 save_pages_break <- function(data_in, path, name, ncol = 4, nrow = 4, facets, plot_type = 'map'){
+  # error catching
+  stopifnot('name must include .pdf' = grepl('.pdf', name))
+  stopifnot('plot_type must be map or hist' = grepl('map', plot_type)|grepl('hist', plot_type))
+  
+  
   years <- unique(year(data_in$year_mon))
   p_save <- list()
   if(plot_type == 'map'){
