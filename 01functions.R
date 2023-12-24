@@ -15,7 +15,7 @@ save_pages <- function(ggobj, path, name, ncol, nrow, facets){
 }
 
 # special version of save_pages that breaks at every year. 
-save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, species, facets, plot_type = 'map'){
+save_pages_break <- function(data_in, path, name, ncol = 4, nrow = 4, facets, plot_type = 'map'){
   years <- unique(year(data_in$year_mon))
   p_save <- list()
   if(plot_type == 'map'){
@@ -44,12 +44,7 @@ save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, speci
     }
   }
 
-  
-  
-  name <- paste0(species, '_', type, '.pdf')
-  
-  fp <- file.path('~', 'eBird_project', 'plots', directory, species, name)
-  pdf(fp, width = 11, height = 8.5)
+  pdf(paste0(path, name), width = 11, height = 8.5)
   lapply(p_save, print)
   dev.off()
 }
