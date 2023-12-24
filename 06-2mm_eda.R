@@ -49,7 +49,7 @@ ym_obs_freq <- mutate(subsample,
             		      group_by(year_mon, long_bin, lat_bin) |>
             		      summarize(obs_freq = sum(species_observed)/n())
 print('summarized')
-yms <- unique(year(ym_obs_freq$year_mon))
+yms <- unique(ym_obs_freq$year_mon)
 
 # free up some RAM
 remove(subsample)
