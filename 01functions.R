@@ -1,5 +1,8 @@
 # Plotting Functions ===========================================================
-save_pages <- function(ggobj, type, directory, ncol, nrow, species, facets){
+save_pages <- function(ggobj, path, name, ncol, nrow, facets){
+  # error catching
+  stopifnot('name must include .pdf' = grepl('.pdf', name))
+  
   all_plots <- lapply(1:ggforce::n_pages(ggobj), function(j){
     p_save <- ggobj+ggforce::facet_wrap_paginate(facets = facets,
                                                  ncol = ncol,
@@ -9,16 +12,18 @@ save_pages <- function(ggobj, type, directory, ncol, nrow, species, facets){
   }
   )
   
-  name <- paste0(species, '_', type, '.pdf')
-  
-  fp <- file.path('~', 'eBird_project', 'plots', directory, species, name)
-  pdf(fp, width = 11, height = 8.5)
+  pdf(file.path(path, name), width = 11, height = 8.5)
   lapply(all_plots, print)
   dev.off()
 }
 
 # special version of save_pages that breaks at every year. 
-save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, species, facets, plot_type = 'map'){
+save_pages_break <- function(data_in, path, name, ncol = 4, nrow = 4, facets, plot_type = 'map'){
+  # error catching
+  stopifnot('name must include .pdf' = grepl('.pdf', name))
+  stopifnot('plot_type must be map or hist' = grepl('map', plot_type)|grepl('hist', plot_type))
+  
+  
   years <- unique(year(data_in$year_mon))
   p_save <- list()
   if(plot_type == 'map'){
@@ -47,12 +52,7 @@ save_pages_break <- function(data_in, type, directory, ncol = 4, nrow = 4, speci
     }
   }
 
-  
-  
-  name <- paste0(species, '_', type, '.pdf')
-  
-  fp <- file.path('~', 'eBird_project', 'plots', directory, species, name)
-  pdf(fp, width = 11, height = 8.5)
+  pdf(paste0(path, name), width = 11, height = 8.5)
   lapply(p_save, print)
   dev.off()
 }
