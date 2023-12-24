@@ -28,7 +28,7 @@ source('01functions.R')
 
 # baseline file path for plots (change this if/when running on different system)
 #fp <- file.path('~', 'Library', 'CloudStorage', 'OneDrive-BowdoinCollege', 'ebird_plots')
-fp <- file.path('~', 'eBird_project', 'plots', species)
+fp <- file.path('~', 'eBird_project', 'plots')
 
 # Wrangle data =================================================================
 # load data
@@ -74,7 +74,7 @@ print('made raw month gg object')
 
 
 save_pages(month_plot,
-           path = file.path(fp, 'monthly'),
+           path = file.path(fp, 'monthly', species),
            name = paste0(species, '_month_raw.pdf'),
            ncol = 6,
            nrow = 4,
@@ -118,7 +118,7 @@ print('made ggplot object for months')
 
 # save smoothed plots
 save_pages(month_plot,
-           path = file.path(fp, 'monthly'),
+           path = file.path(fp, 'monthly', species),
            name = paste0(species, '_month_smoothed.pdf'),
            ncol = 6,
            nrow = 4,
@@ -133,12 +133,13 @@ remove(month_plot)
 #                                   smooth_type = 'flat')
 # # 
 # # plot
-# save_pages_break(mm_compare_flat, type = 'flat_smoothed_mm',
+# save_pages_break(mm_compare_flat, 
+#                  path = file.path(fp, 'comparisons', species),
+#                  name = paste0(species, 'flat_smoothed_mm.pdf'),
+#                  ncol = 3,
+#                  nrow = 4,
 #                  facets = vars(comparison),
-#                  nrow = 3,
-#                  ncol = 4,
-#                  species = opt$s,
-#                  directory = 'comparisons')
+#                  plot_type = 'map')
 # print('saved pages for flat smoothed month-on-month comparisons')
 
 # Geometric Smoothing ==========================================================
@@ -176,7 +177,7 @@ print('made ggplot object for months')
 
 # save smoothed plots
 save_pages(month_plot,
-           path = file.path(fp, 'monthly'),
+           path = file.path(fp, 'monthly', species),
            name = paste0(species, '_month_geom_smoothed.pdf'),
            ncol = 6,
            nrow = 4,
@@ -190,31 +191,29 @@ remove(month_plot)
 #                                   smooth_type = 'geom')
 # 
 # # plot
-# save_pages_break(mm_compare_geom,
-#                  type = 'geom_smoothed_mm',
-#                  facets = vars(comparison),
-#                  nrow = 3,
+# save_pages_break(mm_compare_geom, 
+#                  path = file.path(fp, 'comparisons', species),
+#                  name = paste0(species, 'geom_smoothed_mm.pdf'),
 #                  ncol = 4,
-#                  species = opt$s,
-#                  directory = 'comparisons')
+#                  nrow = 3,
+#                  facets = vars(comparison),
+#                  plot_type = 'map')
 # print('saved pages for geom smoothed month-on-month comparisons')
 
 # Plot histograms of differences ===============================================
-# save_pages_break(mm_compare_flat,
-#                  type = 'flat_mm_hist',
-#                  facets = vars(comparison),
-#                  nrow = 3,
+# save_pages_break(mm_compare_flat, 
+#                  path = file.path(fp, 'comparisons', species),
+#                  name = paste0(species, 'flat_mm_hist.pdf'),
 #                  ncol = 4,
-#                  species = opt$s,
-#                  directory = 'comparisons',
+#                  nrow = 3,
+#                  facets = vars(comparison),
 #                  plot_type = 'hist')
 # 
 # 
-# save_pages_break(mm_compare_geom,
-#                  type = 'geom_mm_hist',
-#                  facets = vars(comparison),
-#                  nrow = 3,
+# save_pages_break(mm_compare_geom, 
+#                  path = file.path(fp, 'comparisons', species),
+#                  name = paste0(species, 'geom_mm_hist.pdf'),
 #                  ncol = 4,
-#                  species = opt$s,
-#                  directory = 'comparisons',
+#                  nrow = 3,
+#                  facets = vars(comparison),
 #                  plot_type = 'hist')
