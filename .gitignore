@@ -3,3 +3,4 @@ raw_ebd/
 filtered_data/
 *.out
 .Rhistory
+test.R
