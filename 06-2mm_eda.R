@@ -13,7 +13,10 @@
 # Load dependencies and parse options ==========================================
 ## libraries -------------------------------------------------------------------
 # data manipulation tools
-library(tidyverse)
+library(dplyr)
+
+# plotting
+library(ggplot2)
 
 # for color-blind friendly visuals
 library(viridis) 
@@ -99,13 +102,13 @@ remove(month_plot)
 # Flat Smoothing ===============================================================
 ## prep and plot smoothed data -------------------------------------------------
 # prep smoothed data
-smoothed_df <- map(yms, ~df_to_mat(ym_obs_freq, .x)) |>
-               map(flat_smooth) |>
-               set_names(yms) |>
+smoothed_df <- purrr:::map(yms, \(x) df_to_mat(ym_obs_freq, over = x)) |>
+               purrr::map(flat_smooth) |>
+               purrr::set_names(yms) |>
                lapply(t) |>
                lapply(as.vector) |>
-               enframe(name = 'year_mon', value = 'obs_freq') |>
-               unnest_longer('obs_freq') |>
+               tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
+               tidyr::unnest_longer('obs_freq') |>
                mutate(obs_freq = case_when(is.nan(obs_freq) ~ NA,
                                            is.na(obs_freq) ~ NA,
                                            !is.na(obs_freq) ~ obs_freq))
@@ -158,13 +161,13 @@ remove(month_plot)
 ## prep and plot smoothed data ----
 
 # plot smoothed data
-smoothed_df <- map(yms, ~df_to_mat(ym_obs_freq, .x)) |>
-               map(geom_smooth) |>
-               set_names(yms) |>
+smoothed_df <- purrr::map(yms, \(x) df_to_mat(ym_obs_freq, over = x)) |>
+               purrr::map(geom_smooth) |>
+               purrr::set_names(yms) |>
                lapply(t) |>
                lapply(as.vector) |>
-               enframe(name = 'year_mon', value = 'obs_freq') |>
-               unnest_longer('obs_freq') |>
+               tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
+               tidyr::unnest_longer('obs_freq') |>
                mutate(obs_freq = case_when(is.nan(obs_freq) ~ NA,
                                            is.na(obs_freq) ~ NA,
                                            !is.na(obs_freq) ~ obs_freq))

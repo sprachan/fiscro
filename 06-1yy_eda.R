@@ -13,7 +13,10 @@
 # Load dependencies and parse options ==========================================
 ## libraries -------------------------------------------------------------------
 # data manipulation tools
-library(tidyverse)
+library(dplyr)
+
+# plotting
+library(ggplot2)
 
 # for color-blind friendly visuals
 library(viridis) 

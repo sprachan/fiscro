@@ -11,7 +11,10 @@
 # Load dependencies and parse options ==========================================
 ## libraries -------------------------------------------------------------------
 # data manipulation tools
-library(tidyverse)
+library(dplyr)
+
+# plotting
+library(ggplot2)
 
 # for color-blind friendly visuals
 library(viridis) 
@@ -49,15 +52,15 @@ print('loaded')
 # filter data
 years <- seq(2010, 2022, by = 1)
 subsample <- filter(subsample, 
-		    year(observation_date) %in% years,
-		    species_code == opt$s)
+            		    year(observation_date) %in% years,
+            		    species_code == opt$s)
 print('filtered')
 
 # process data
 ym_obs_freq <- mutate(subsample,
-		      year_mon = as.yearmon(observation_date)) |>
-		      group_by(year_mon, long_bin, lat_bin) |>
-		      summarize(obs_freq = sum(species_observed)/n())
+            		      year_mon = as.yearmon(observation_date)) |>
+            		      group_by(year_mon, long_bin, lat_bin) |>
+            		      summarize(obs_freq = sum(species_observed)/n())
 print('summarized')
 
 # free up some RAM
@@ -67,10 +70,10 @@ remove(subsample)
 ## cutoffs ----
 phis <- c(0.999, 0.6, 0.3, 1e-3)
 
-plots <- map(phis, \(x) cutoff_plot(data_in = ym_obs_freq, 
-                                    cutoff = x, 
-                                    title = as.character(x))) |>
-         set_names(phis)
+plots <- purrr::map(phis, \(x) cutoff_plot(data_in = ym_obs_freq, 
+                                           cutoff = x, 
+                                           title = as.character(x))) |>
+         purrr::set_names(phis)
 
 species <- opt$s
 name <- paste0(species, '_cutoff', '.pdf')
@@ -89,5 +92,5 @@ name <- paste0(species, '_contour', '.pdf')
 
 fp <- file.path('~', 'eBird_project', 'plots', 'cutoffs', species, name)
 pdf(fp, width = 11, height = 8.5)
-print(p)
+  print(p)
 dev.off()
