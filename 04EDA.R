@@ -1,8 +1,9 @@
-# ------------------------------------------------------------------------
-# Preliminary EDA. Take a random sample of the data (to reduce computational
+# DESCRIPTION ------------------------------------------------------------------
+#>
+#> Preliminary EDA. Take a random sample of the data (to reduce computational
 #> burden), calculate a rough measure of density for all species, plot over
 #> time. Also crow specific EDA by state to better understand data.
-
+#>
 # -----------------------------------------------------------------------
 library(ggplot2)
 library(dplyr)
