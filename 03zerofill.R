@@ -1,3 +1,15 @@
+# DESCRIPTION ------------------------------------------------------------------
+#>
+#> Given an input EBD and SED, return zero-filled dataframe: one row for each
+#> unique checklist-species combination; columns the same as the EBD, with 
+#> the addition of a (logical) species_observed column. I also clean up some
+#> variables:
+#> use 6-letter banding code instead of scientific name; 
+#> convert observation counts to numbers, and make "X"'s into NAs; 
+#> convert stationary NA effort distances to 0.
+#>
+# ------------------------------------------------------------------------------
+
 # Dependencies =================================================================
 library(auk)
 library(dplyr)
@@ -39,10 +51,7 @@ cat('EBD input path: ', input_ebd, '\n',
 
 # Zerofilling ==================================================================
 
-#> return data frame with one row for each checklist-species combination
-#> with some cleaned up variables: use 4-letter banding code instead of 
-#> scientific name; convert observation counts to numbers, and make "X"'s into
-#> NAs; convert stationary NA effort distances to 0.
+
 
 species <- c('Mourning Dove',
              'American Crow',
