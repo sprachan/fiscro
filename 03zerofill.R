@@ -101,11 +101,11 @@ write.csv(ebd_zf, file = output_zf)
 print('written')
 
 
-combined_zf  <- list.files(path='./processed_data', 
-                           pattern='zf',
-                           all.files=TRUE, 
-                           full.names=TRUE) |>
+combined_zf  <- list.files(path = './processed_data', 
+                           pattern = 'zf',
+                           all.files = TRUE, 
+                           full.names = TRUE) |>
                 purrr::map(\(x) read.csv(x)) |>
                 bind_rows()
 
-save(combined_zf, file='./processed_data/combined_zf.RData')
+save(combined_zf, file = './processed_data/combined_zf.RData')
