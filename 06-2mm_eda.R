@@ -1,5 +1,14 @@
-# This is some more advanced EDA on spatially unbiased data to look at
-# Species counts over space and time.
+# DESCRIPTION ------------------------------------------------------------------
+#>
+#> This is some more advanced EDA on spatially unbiased data to look at
+#> species counts over space and time. This script plots raw data for each
+#> year/month combination. It also does month-on-month comparisons of 
+#> observation frequencies, taking the difference (within the same year) 
+#> between the observation frequency in a given cell in consecutive months. 
+#> Differences are always taken as the earlier month subtracted from the later;
+#> for example, February 2022 - January 2022.
+#>
+# ------------------------------------------------------------------------------
 
 # Load dependencies and parse options ==========================================
 ## libraries -------------------------------------------------------------------
