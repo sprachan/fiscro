@@ -7,31 +7,25 @@
 # ------------------------------------------------------------------------------
 
 
-# Dependencies, Load Data ==================================================
+# Load dependencies, parse options =======================================
+## Dependencies ----
+# data manipulation tools
 library(dplyr)
-library(MASS)
+
+# plotting tools
 library(ggplot2)
+
+# color-blind friendly color scales
 library(viridis)
-library(optparse)
 cols <- viridis(100)
 
-# Load combined data -- this takes a minute
-load('./processed_data/combined_zf.RData')
-str(combined_zf)
-# only need checklist id and location information (lat and long)
-#> additionally, this will have multiple rows with identical information
-#> because there are at least 6 rows (one for each species) for each
-#> checklist. distinct() takes only unique rows.
-lists_location <- dplyr::select(combined_zf,
-                                checklist_id,
-                                latitude,
-                                longitude) |>
-		   distinct(.keep_all = TRUE)
-str(lists_location)
+# kde2d function and associated help
+library(MASS)
 
-# get RAM back!
-rm(combined_zf)
-# Parse command line options ============================================
+# get options from command line for flexibility
+library(optparse)
+
+## Parse command line options ----
 option_list <- list(
   make_option(c('-n', '--numbins'), type = 'integer', 
               action = 'store', help = 'number of bins for KDE2D'),
@@ -54,43 +48,28 @@ num_bins <- opt$numbins
 epsilon <- opt$epsilon |> as.numeric()
 sample_size <- opt$samplesize |> as.numeric()
 tag <- opt$plottag
+
 # test that this worked
 print(num_bins)
 print(epsilon)
 print(sample_size)
 print(tag)
-# Functions ==============================================================
-get_bin <- function(data_set, breaks){
-  # vector that will give the breaks above our long/lat
-  upper <- which(data_set < breaks)
-  # vector that will give the breaks below our long/lat
-  lower <- which(data_set > breaks)
-  
-  # edge case: above the highest break
-  if(length(upper) == 0){
-    if(length(lower) == 0){
-      # this should give NA because it shouldn't be possible to be both
-      #> outside of the upper AND lower bound
-      return(NA)
-    }else{
-      # just give index of the max lower bound
-      return(max(lower))
-    }
-  # edge case: below the lowest break
-  }else if(length(lower) == 0){
-    # give the index of the min upper bound 
-    return(min(upper))
-  # leverage the fact that if min(upper) - x < x - max(lower), we are closer
-  #> to the upper bound! Arbitrarily, if we are exactly in the middle, take
-  #> the upper bound
-  }else if(min(upper)+max(lower) <= 2*data_set){
-    # return index of the min upper bound
-    return(min(upper))
-  }else{
-    # return index of the max lower bound
-    return(max(lower))
-  }
-}
+
+# Load and wrangle data ========================================================
+# Load combined data -- this takes a minute
+load('./processed_data/combined_zf.RData')
+str(combined_zf)
+# only need checklist id and location information (lat and long)
+
+lists_location <- dplyr::select(combined_zf,
+                                checklist_id,
+                                latitude,
+                                longitude) |>
+                  distinct(.keep_all = TRUE)
+str(lists_location)
+
+# get RAM back!
+rm(combined_zf)
 
 # Sampling ===================================
 
