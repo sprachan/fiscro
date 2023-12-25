@@ -1,8 +1,11 @@
 # Plotting Functions ===========================================================
+
 save_pages <- function(ggobj, path, name, ncol, nrow, facets){
   # error catching
-  stopifnot('name must include .pdf' = grepl('.pdf', name))
+  name_catch <- grepl('.pdf', name)
+  stopifnot('name must include .pdf' = name_catch)
   
+  # function
   all_plots <- lapply(1:ggforce::n_pages(ggobj), function(j){
     p_save <- ggobj+ggforce::facet_wrap_paginate(facets = facets,
                                                  ncol = ncol,
@@ -18,12 +21,15 @@ save_pages <- function(ggobj, path, name, ncol, nrow, facets){
 }
 
 # special version of save_pages that breaks at every year. 
-save_pages_break <- function(data_in, path, name, ncol = 4, nrow = 4, facets, plot_type = 'map'){
+save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type = 'map'){
   # error catching
-  stopifnot('name must include .pdf' = grepl('.pdf', name))
-  stopifnot('plot_type must be map or hist' = grepl('map', plot_type)|grepl('hist', plot_type))
+  name_catch <- grepl('.pdf', name)
+  stopifnot('name must include .pdf' = name_catch)
   
+  type_catch <- grepl('map', plot_type)|grepl('hist', plot_type)
+  stopifnot('plot_type must be map or hist' = type_catch)
   
+  # function
   years <- unique(year(data_in$year_mon))
   p_save <- list()
   if(plot_type == 'map'){
@@ -134,6 +140,11 @@ flat_smooth <- function(matrix_in, scope = 1){
 # Data Manipulation Functions ==================================================
 # turn the dataframe to a matrix for easy use in lapply/maps
 df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
+  # error catching
+  nest_check <- grepl('ym', nest_by)|grepl('comparison'|nest_by)
+  stopifnot('nest_by must be ym or comparison' = nest_check)
+  
+  # function
   temp <- ungroup(df)
   if(nest_by == 'ym'){
     temp <- complete(temp, 
@@ -158,6 +169,11 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
 
 # Comparison functions ---------------------------------------------------------
 compare_years <- function(data_in, smooth_type){
+  # error catching
+  type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
+  stopifnot('smooth_type must be flat or geom' = type_catch)
+  
+  # function
   yms <- unique(data_in$year_mon)
   # make a data frame that has transformed differences
   x <- map(yms, ~df_to_mat(data_in, over = .x, nest_by = 'ym')) |> 
@@ -195,8 +211,6 @@ compare_years <- function(data_in, smooth_type){
     y <- map(y, flat_smooth)
   }else if(smooth_type == 'geom'){
     y <- map(y, geom_smooth) 
-  }else{
-    stop('Need valid smooth type, either flat or geom')
   }
   
   y <- set_names(y, com) |>
@@ -224,6 +238,11 @@ compare_years <- function(data_in, smooth_type){
 
 # do month-on-month comparisons within a year for a given set of years
 compare_months <- function(data_in, years, smooth_type){
+  # error catching
+  type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
+  stopifnot('smooth_type must be flat or geom' = type_catch)
+  
+  # function
   yms <- unique(data_in$year_mon)
   
   # make a data frame that has transformed differences
