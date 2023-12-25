@@ -1,5 +1,9 @@
 # Plotting Functions ===========================================================
 
+#> DESCRIPTION: saves ggobj input to a pdf file (letter paper in landscape)
+#> with file path 'path' and file name 'name.'
+#> ncol, nrow, and facets are required and control facetting and layout.
+
 save_pages <- function(ggobj, path, name, ncol, nrow, facets){
   # error catching
   name_catch <- grepl('.pdf', name)
@@ -20,7 +24,11 @@ save_pages <- function(ggobj, path, name, ncol, nrow, facets){
   dev.off()
 }
 
-# special version of save_pages that breaks at every year. 
+#> DESCRIPTION: special version of save_pages that is designed to work with
+#> month-on-month comparisons. This breaks the comparisons up by year; ie.,
+#> one page has a full set of monthly comparisons for a year and none from any
+#> other years. 
+
 save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type = 'map'){
   # error catching
   name_catch <- grepl('.pdf', name)
@@ -63,6 +71,10 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
   dev.off()
 }
 
+#> DESCRIPTION: Given a cutoff value, create a map in ggplot where a cell is 
+#> black if the observation frequency is ABOVE that value and white if
+#> the observation frequency is BELOW the value.
+
 cutoff_plot <- function(data_in, cutoff, title){
   legend_lab <- paste0('OF over ', title)
   p <- data_in |> dplyr::mutate(over = dplyr::case_when(obs_freq < cutoff ~ 'No',
@@ -79,7 +91,13 @@ cutoff_plot <- function(data_in, cutoff, title){
 }
 
 # Smoothing Functions ==========================================================
-# smooth by applying a weighted average
+
+#> DESCRIPTION: Smooth a matrix of data. For a cell x, the new "smoothed" value
+#> of x is given by taking the weighted average of x (weight given by <w>) and
+#> its non-diagonal neighbors within <scope> cells. If x is NA, do a regular average 
+#> of the non-diagonal neighbors (otherwise the weighted average will artificially
+#> lower the observation frequency).
+
 geom_smooth <- function(matrix_in, w = 0.75, scope = 1){
   N <- length(matrix_in[1,])
   out <- matrix(NA, nrow = N, ncol = N)
@@ -112,8 +130,10 @@ geom_smooth <- function(matrix_in, w = 0.75, scope = 1){
 }
 
 
-# smooth the data by averaging a cell with its neighbors. Does not propagate
-# NA values unless everything within <scope> cells is NA.
+#> DESCRIPTION: Smooth a matrix of data. For a cell x, the new "smoothed" value
+#> of x is given by taking the average of x and its non-diagonal neighbors within
+#> <scope> cells.
+
 flat_smooth <- function(matrix_in, scope = 1){
   # assumes a square matrix (which we have)
   N <- length(matrix_in[1,]) # should be 200
@@ -138,7 +158,14 @@ flat_smooth <- function(matrix_in, scope = 1){
 }
 
 # Data Manipulation Functions ==================================================
-# turn the dataframe to a matrix for easy use in lapply/maps
+
+#> DESCRIPTION: Turn a data frame into a <n> x <n> matrix for easy use in lapply
+#> and map functions. <over> is what the lapply/map is done "over", typically
+#> the year-month combinations. <nest_by> gives what we should complete the
+#> cells by -- that is, should each unique year-month have a full
+#> set of cells ('ym'), or should each unique comparison have a full set of cells
+#> ('comparison')?
+
 df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
   # error catching
   nest_check <- grepl('ym', nest_by)|grepl('comparison'|nest_by)
@@ -168,6 +195,11 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
 }
 
 # Comparison functions ---------------------------------------------------------
+
+#> DESCRIPTION: Given an observation frequency data frame, calculate the 
+#> difference in observation frequency between the same bin in different 
+#> years. Bins are compared between the same month of consecutive years.
+
 compare_years <- function(data_in, smooth_type){
   # error catching
   type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
@@ -236,7 +268,11 @@ compare_years <- function(data_in, smooth_type){
   return(y)
 }
 
-# do month-on-month comparisons within a year for a given set of years
+#> DESCRIPTION: Given an observation frequency data frame and a set of years, 
+#> calculate the difference in observation frequency between the same bin in 
+#> different years. Bins are compared between consecutive months of the same 
+#> year.
+
 compare_months <- function(data_in, years, smooth_type){
   # error catching
   type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
