@@ -2,12 +2,21 @@
 # Species counts over space and time.
 
 # Load dependencies and parse options ==========================================
+## libraries -------------------------------------------------------------------
+# data manipulation tools
+library(tidyverse)
 
-library(tidyverse) # data manipulation tools
-library(viridis) # for color-blind friendly visuals
-library(zoo) # helpful for year_mon object and related tools
-library(optparse) # for flexibility in options when called through command line
-# get options
+# for color-blind friendly visuals
+library(viridis) 
+
+# provides year_mon object type and related tools
+library(zoo) 
+
+# flexibility in options when called through command line, 
+#> makes script play nicer with HPC
+library(optparse) 
+
+## get options -----------------------------------------------------------------
 option_list <- list(
   make_option(c('-s', '--speciesCode'), type = 'character',
               action = 'store', help = 'species for analysis')
@@ -19,7 +28,10 @@ opt_parser = OptionParser(option_list = option_list);
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
 
+## load functions and set base file path ---------------------------------------
 source('01functions.R')
+
+fp <- file.path('~', 'eBird_project', 'plots')
 
 # Wrangle data =================================================================
 # load data
