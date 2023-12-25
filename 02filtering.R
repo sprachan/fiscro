@@ -1,13 +1,25 @@
-# Dependencies =================================================================
+# DESCRIPTION ------------------------------------------------------------------
+#>
+#> Given an input EBD and SED, output an EBD and SED that are filtered in 
+#> the same way. Filters data down to only species of interest as well as 
+#> by some effort variables (duration, distance) to keep only higher quality 
+#> data, as suggested by Best Practices for using eBird Data 
+#> (https://ebird.github.io/ebird-best-practices/)
+#>
+# ------------------------------------------------------------------------------
+
+# Load dependencies and parse options ==========================================
+# Dependencies ----
+# tools for working with eBird data
 library(auk)
+
+# get and use options so I can run scripts flexibly from the command line
 library(optparse)
+
+# data manipulation tools
 library(dplyr)
 
-# Parse Command Line Options ==================================================
-
-#> Necessary because I used Bowdoin's HPC to process these large files,
-#> because my personal computer couldn't (effectively) handle them.
-
+# Options ----
 # get arguments from the command line input
 option_list <- list(
   make_option(c("-a", "--ebdinput"), type = 'character',
@@ -57,7 +69,7 @@ species <- c('Mourning Dove',
 duration <- c(5, 300)
 distance <- c(0, 5)
 
-# Execute Filter ==============================================================
+# Filter =======================================================================
 #> Will overwrite existing filtered files if they exist in the destination
 filtered <- auk_ebd(file = input_ebd, file_sampling = input_sed) |>
   auk_species(species) |>

@@ -1,19 +1,38 @@
-# This is some more advanced EDA on spatially unbiased data to look at
-# Species counts over space and time.
+# DESCRIPTION ------------------------------------------------------------------
+#>
+#> This is some more advanced EDA on spatially unbiased data to look at
+#> species counts over space and time. This script plots raw data for each
+#> year/month combination. It also does month-on-month comparisons of 
+#> observation frequencies, taking the difference (within the same year) 
+#> between the observation frequency in a given cell in consecutive months. 
+#> Differences are always taken as the earlier month subtracted from the later;
+#> for example, February 2022 - January 2022.
+#>
+# ------------------------------------------------------------------------------
 
 # Load dependencies and parse options ==========================================
+## libraries -------------------------------------------------------------------
+# data manipulation tools
+library(dplyr)
 
-library(tidyverse) # data manipulation tools
-library(viridis) # for color-blind friendly visuals
-library(zoo) # helpful for year_mon object and related tools
-library(optparse) # for flexibility in options when called through command line
+# plotting
+library(ggplot2)
 
-# get options
-option_list <- list(
-  make_option(c('-s', '--speciesCode'), 
-              type = 'character',
-              action = 'store', 
-              help = 'species for analysis')
+# for color-blind friendly visuals
+library(viridis) 
+
+# provides year_mon object type and related tools
+library(zoo) 
+
+# flexibility in options when called through command line, 
+#> makes script play nicer with HPC
+library(optparse) 
+
+## get options -----------------------------------------------------------------
+option_list <- list(make_option(c('-s', '--speciesCode'), 
+                                type = 'character',
+                                action = 'store', 
+                                help = 'species for analysis')
 )
 
 # create a parser object
@@ -22,12 +41,9 @@ opt_parser = OptionParser(option_list = option_list);
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
 
-species <- opt$s
-# functions
+## load functions and set base file path ---------------------------------------
 source('01functions.R')
 
-# baseline file path for plots (change this if/when running on different system)
-#fp <- file.path('~', 'Library', 'CloudStorage', 'OneDrive-BowdoinCollege', 'ebird_plots')
 fp <- file.path('~', 'eBird_project', 'plots')
 
 # Wrangle data =================================================================
@@ -87,13 +103,13 @@ remove(month_plot)
 # Flat Smoothing ===============================================================
 ## prep and plot smoothed data -------------------------------------------------
 # prep smoothed data
-smoothed_df <- map(yms, ~df_to_mat(ym_obs_freq, .x)) |>
-               map(flat_smooth) |>
-               set_names(yms) |>
+smoothed_df <- purrr:::map(yms, \(x) df_to_mat(ym_obs_freq, over = x)) |>
+               purrr::map(flat_smooth) |>
+               purrr::set_names(yms) |>
                lapply(t) |>
                lapply(as.vector) |>
-               enframe(name = 'year_mon', value = 'obs_freq') |>
-               unnest_longer('obs_freq') |>
+               tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
+               tidyr::unnest_longer('obs_freq') |>
                mutate(obs_freq = case_when(is.nan(obs_freq) ~ NA,
                                            is.na(obs_freq) ~ NA,
                                            !is.na(obs_freq) ~ obs_freq))
@@ -146,13 +162,13 @@ remove(month_plot)
 ## prep and plot smoothed data ----
 
 # plot smoothed data
-smoothed_df <- map(yms, ~df_to_mat(ym_obs_freq, .x)) |>
-               map(geom_smooth) |>
-               set_names(yms) |>
+smoothed_df <- purrr::map(yms, \(x) df_to_mat(ym_obs_freq, over = x)) |>
+               purrr::map(geom_smooth) |>
+               purrr::set_names(yms) |>
                lapply(t) |>
                lapply(as.vector) |>
-               enframe(name = 'year_mon', value = 'obs_freq') |>
-               unnest_longer('obs_freq') |>
+               tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
+               tidyr::unnest_longer('obs_freq') |>
                mutate(obs_freq = case_when(is.nan(obs_freq) ~ NA,
                                            is.na(obs_freq) ~ NA,
                                            !is.na(obs_freq) ~ obs_freq))
