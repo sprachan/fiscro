@@ -1,5 +1,12 @@
-# This is some more advanced EDA on spatially unbiased data to look at
-# Species counts over space and time.
+# DESCRIPTION ------------------------------------------------------------------
+#>
+#> This is some more advanced EDA on spatially unbiased data to look at
+#> species counts over space and time.
+#> This script plots contours of observation frequency to get a sense of how
+#> dispersed populations are. This is done on all data together (not separated
+#> by time period -- yet).
+#>
+# ------------------------------------------------------------------------------
 
 # Load dependencies and parse options ==========================================
 ## libraries -------------------------------------------------------------------
