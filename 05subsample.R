@@ -1,10 +1,11 @@
-#=========================================================================
-#
-# This script uses a kernel density estimator, then samples using the inverse
-# of that probability, in order to reduce spatial bias in the data.
-#
-##
-#=========================================================================
+# DESCRIPTION ------------------------------------------------------------------
+#>
+#> This script uses a kernel density estimator to estimate checklist density
+#> over a 200x200 spatial grid, then samples with weights inversely proportional 
+#> to the estimated density in order to reduce spatial bias in the data.
+#>
+# ------------------------------------------------------------------------------
+
 
 # Dependencies, Load Data ==================================================
 library(dplyr)
