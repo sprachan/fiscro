@@ -29,9 +29,10 @@ library(zoo)
 library(optparse) 
 
 ## get options -----------------------------------------------------------------
-option_list <- list(
-  make_option(c('-s', '--speciesCode'), type = 'character',
-              action = 'store', help = 'species for analysis')
+option_list <- list(make_option(c('-s', '--speciesCode'), 
+                                type = 'character',
+                                action = 'store', 
+                                help = 'species for analysis')
 )
 
 # create a parser object
