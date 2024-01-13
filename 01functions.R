@@ -263,6 +263,10 @@ compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
           dplyr::filter(lubridate::year(year_mon) == lubridate::year(year_mon2)-1,
                         lubridate::month(year_mon) == lubridate::month(year_mon2)) |>
           dplyr::mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
+                        log_of = dplyr::case_when(is.nan(log_of) ~ NA,
+                                                  !is.nan(log_of) ~ log_of),
+                        log_of2 = dplyr::case_when(is.nan(log_of) ~ NA,
+                                                   !is.nan(log_of) ~ log_of),
                         diff = purrr::map2(obs_freq2, obs_freq, `-`),
                         diff_log = purrr::map2(log_of, log_of2, `-`)) |>
           dplyr::select(-obs_freq, -obs_freq2, -log_of, -log_of2, -year_mon, -year_mon2) |>
