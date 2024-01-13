@@ -285,9 +285,9 @@ compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
        purrr::set_names(com)
   
   if(smooth_type == 'flat'){
-    y <- map(y, flat_smooth)
+    y <- purrr::map(y, flat_smooth)
   }else if(smooth_type == 'geom'){
-    y <- map(y, geom_smooth) 
+    y <- purrr::map(y, geom_smooth) 
   }
   
   y <- purrr::set_names(y, com) |>
