@@ -228,7 +228,8 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
                             lat_bin = 1:n) |>		     
             dplyr::filter(comparison == over) |>
             dplyr::arrange(long_bin, lat_bin) 
-    temp <- matrix(temp$transform_diff, nrow = n, ncol = n, byrow = TRUE)
+    #transform_mat <- matrix(temp$transform_diff, nrow = n, ncol = n, byrow = TRUE)
+    temp <- matrix(temp$diff_log, nrow = n, ncol = n, byrow = TRUE)
     return(temp)
   }
 }
@@ -239,7 +240,7 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
 #> difference in observation frequency between the same bin in different 
 #> years. Bins are compared between the same month of consecutive years.
 
-compare_years <- function(data_in, smooth_type){
+compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
   # error catching
   type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
   stopifnot('smooth_type must be flat or geom' = type_catch)
@@ -259,11 +260,16 @@ compare_years <- function(data_in, smooth_type){
           dplyr::filter(lubridate::year(year_mon) == lubridate::year(year_mon2)-1,
                         lubridate::month(year_mon) == lubridate::month(year_mon2)) |>
           dplyr::mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
-                        diff = purrr::map2(obs_freq2, obs_freq, `-`)) |>
+                        diff = purrr::map2(obs_freq2, obs_freq, `-`),
+                        diff_log = purrr::map2(log10(obs_freq2+epsilon), 
+                                               log10(obs_freq+epsilon), 
+                                               `-`)) |>
           dplyr::select(-obs_freq, -obs_freq2, -year_mon, -year_mon2) |>
           tidyr::unnest_longer(diff) |>
           dplyr::mutate(diff = dplyr::case_when(is.nan(diff) ~ NA,
                                                 !is.nan(diff) ~ diff),
+                        diff_log = dplyr::case_when(is.nan(diff) ~ NA,
+                                                    !is.nan(diff) ~ diff),
                         transform_diff = dplyr::case_when(is.na(diff) ~ NA,
                                                           diff < 0 ~ -sqrt(abs(diff)),
                                                           diff == 0 ~ 0,
@@ -289,10 +295,10 @@ compare_years <- function(data_in, smooth_type){
        lapply(t) |>
        lapply(as.vector) |>
        tibble::enframe(name = 'comparison', value = 'transform_diff') |>
-       tidyr::unnest_longer(transform_diff) |>
-       dplyr::mutate(transform_diff = dplyr::case_when(is.nan(transform_diff) ~ NA,
-                                                       !is.nan(transform_diff)~transform_diff)
-                    )
+       tidyr::unnest_longer(diff_log) #|>
+       # dplyr::mutate(transform_diff = dplyr::case_when(is.nan(transform_diff) ~ NA,
+       #                                                 !is.nan(transform_diff)~transform_diff)
+       #              )
   
   n <- length(unique(y$comparison))
   # add lat_bin, long_bin columns
