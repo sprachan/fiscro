@@ -54,7 +54,7 @@ print('loaded')
 # filter data
 years <- seq(2010, 2022, by = 1)
 subsample <- filter(subsample, 
-                    year(observation_date) %in% years,
+                    lubridate::year(observation_date) %in% years,
                     species_code == opt$s)
 print('filtered')
 
