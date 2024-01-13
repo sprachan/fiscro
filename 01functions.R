@@ -207,7 +207,7 @@ get_bin <- function(data_set, breaks){
 
 df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
   # error catching
-  nest_check <- grepl('ym', nest_by)|grepl('comparison'|nest_by)
+  nest_check <- grepl('ym', nest_by)|grepl('comparison', nest_by)
   stopifnot('nest_by must be ym or comparison' = nest_check)
   
   # function
