@@ -62,7 +62,8 @@ print('filtered')
 ym_obs_freq <- mutate(subsample,
                       year_mon = as.yearmon(observation_date)) |>
                group_by(year_mon, long_bin, lat_bin) |>
-               summarize(obs_freq = sum(species_observed)/n())
+               summarize(obs_freq = sum(species_observed)/n()) |>
+               mutate(obs_freq = as.numeric(obs_freq))
 print('summarized')
 
 # free up some RAM

@@ -241,6 +241,7 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
 #> years. Bins are compared between the same month of consecutive years.
 
 compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
+  epsilon <- as.numeric(epsilon)
   # error catching
   type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
   stopifnot('smooth_type must be flat or geom' = type_catch)
