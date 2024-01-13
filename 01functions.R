@@ -255,15 +255,15 @@ compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
           lapply(as.vector) |> 
           tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
           tidyr::expand(tidyr::nesting(year_mon = zoo::as.yearmon(year_mon),
-                                       obs_freq,
+                                       #obs_freq,
                                        log_of = lapply(obs_freq, \(x) log10(x + epsilon))),
                         tidyr::nesting(year_mon2 = zoo::as.yearmon(year_mon),
-                                       obs_freq2 = obs_freq),
-                                       log_of2 = log_of) |>
+                                       #obs_freq2 = obs_freq),
+                                       log_of2 = log_of)) |>
           dplyr::filter(lubridate::year(year_mon) == lubridate::year(year_mon2)-1,
                         lubridate::month(year_mon) == lubridate::month(year_mon2)) |>
           dplyr::mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
-                        diff = purrr::map2(obs_freq2, obs_freq, `-`),
+                        #diff = purrr::map2(obs_freq2, obs_freq, `-`),
                         diff_log = purrr::map2(log_of, log_of2, `-`)) |>
           dplyr::select(-obs_freq, -obs_freq2, -log_of, -log_of2, -year_mon, -year_mon2) |>
           tidyr::unnest_longer(diff) |>
