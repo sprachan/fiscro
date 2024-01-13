@@ -79,7 +79,8 @@ print('geom smooth done')
 yy_plot <- ggplot(yy_compare_flat,
                   aes(x = long_bin,
                       y = lat_bin,
-                      fill = transform_diff))+
+                      #fill = transform_diff)
+                      fill = diff_log))+
            geom_raster()+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
@@ -104,7 +105,8 @@ remove(yy_plot)
 yy_plot <- ggplot(yy_compare_geom,
                   aes(x = long_bin,
                       y = lat_bin,
-                      fill = transform_diff))+
+                      #fill = transform_diff)
+                      fill = diff_log))+
   geom_raster()+
   ggforce::facet_wrap_paginate(facets = vars(comparison),
                                nrow = 3,
@@ -129,9 +131,10 @@ remove(yy_plot)
 
 # Plot histograms of differences ===============================================
 yy_hist <- yy_compare_flat |>
-           mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
-                                             .default = transform_diff)) |>
-           ggplot(aes(x = transform_diff))+
+           # mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
+           #                                   .default = transform_diff)) |>
+           ggplot(aes(#x = transform_diff)
+                       x = diff_log))+
            geom_histogram(bins = 200)+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
@@ -148,9 +151,10 @@ save_pages(yy_hist,
 remove(yy_hist)
 
 yy_hist <- yy_compare_geom |>
-           mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
-                                             .default = transform_diff)) |>
-           ggplot(aes(x = transform_diff))+
+           # mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
+           #                                   .default = transform_diff)) |>
+           ggplot(aes(#x = transform_diff)
+                      x = diff_log))+
            geom_histogram(bins = 200)+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
