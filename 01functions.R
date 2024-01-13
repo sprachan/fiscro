@@ -293,7 +293,7 @@ compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
   y <- purrr::set_names(y, com) |>
        lapply(t) |>
        lapply(as.vector) |>
-       tibble::enframe(name = 'comparison', value = 'transform_diff') |>
+       tibble::enframe(name = 'comparison', value = 'diff_log') |>
        tidyr::unnest_longer(diff_log) #|>
        # dplyr::mutate(transform_diff = dplyr::case_when(is.nan(transform_diff) ~ NA,
        #                                                 !is.nan(transform_diff)~transform_diff)
