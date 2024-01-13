@@ -266,7 +266,7 @@ compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
                         #diff = purrr::map2(obs_freq2, obs_freq, `-`),
                         diff_log = purrr::map2(log_of, log_of2, `-`)) |>
           dplyr::select(-log_of, -log_of2, -year_mon, -year_mon2) |>
-          tidyr::unnest_longer(diff) |>
+          tidyr::unnest_longer(diff_log) |>
           dplyr::mutate(diff_log = dplyr::case_when(is.nan(diff_log) ~ NA,
                                                     !is.nan(diff_log) ~ diff_log)
                         # transform_diff = dplyr::case_when(is.na(diff) ~ NA,
