@@ -40,6 +40,7 @@ opt_parser = OptionParser(option_list = option_list);
 
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
+species <- opt$s
 
 ## load functions and set base file path ---------------------------------------
 source('01functions.R')
