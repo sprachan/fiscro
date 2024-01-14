@@ -100,7 +100,7 @@ save_pages(yy_plot,
            name = paste0(species, '_flat_smoothed_yy.pdf'),
            nrow = 3,
            ncol = 4,
-           facets = vars(year_mon))
+           facets = vars(comparison))
 print('saved pages for flat smoothed year-on-year comparisons')
 
 remove(yy_plot)
@@ -126,7 +126,7 @@ save_pages(yy_plot,
            name = paste0(species, '_geom_smoothed_yy.pdf'),
            nrow = 3,
            ncol = 4,
-           facets = vars(year_mon))
+           facets = vars(comparison))
 
 print('saved pages for geom smoothed year-on-year comparisons')
 remove(yy_plot)
@@ -153,8 +153,8 @@ save_pages(yy_hist,
 remove(yy_hist)
 
 yy_hist <- yy_compare_geom |>
-           # mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
-           #                                   .default = transform_diff)) |>
+           mutate(diff_log = case_when(diff_log == 0 ~ NA,
+                                             .default = diff_log)) |>
            ggplot(aes(#x = transform_diff)
                       x = diff_log))+
            geom_histogram(bins = 200)+
