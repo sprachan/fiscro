@@ -172,19 +172,21 @@ save_pages(yy_hist,
 
 # Summarize difference distribution as zero/non-zero ===========================
 out_flat <- summarize(yy_compare_flat,
-                      decrease = sum(diff_log < 0),
-                      no_change = sum(diff_log == 0),
-                      increase = sum(diff_log > 0))
+                      decrease = sum(diff_log < 0, na.rm = TRUE),
+                      no_change = sum(diff_log == 0, na.rm = TRUE),
+                      increase = sum(diff_log > 0, na.rm = TRUE),
+                      na = sum(is.na(diff_log)))
 
 out_geom <- summarize(yy_compare_geom,
-                      decrease = sum(diff_log < 0),
-                      no_change = sum(diff_log == 0),
-                      increase = sum(diff_log > 0))
+                      decrease = sum(diff_log < 0, na.rm = TRUE),
+                      no_change = sum(diff_log == 0, na.rm = TRUE),
+                      increase = sum(diff_log > 0, na.rm = TRUE),
+                      na = sum(is.na(diff_log)))
 
 out <- bind_rows(list(flat = out_flat, geom = out_geom),
                  .id = 'smooth_type')
 # output -- print and save as file
 print(out)
 write.csv(out, file = file.path('~', 'eBird_project', 'summary_output', 
-                                  species,
-                                  'yy_diffs.csv'))
+                                paste0(species, '_yy_diffs.csv')
+                                ))
