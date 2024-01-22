@@ -148,7 +148,7 @@ save_pages(yy_hist,
            name = paste0(species, '_flat_yy_hist.pdf'),
            nrow = 3,
            ncol = 4,
-           facets = vars(year_mon))
+           facets = vars(comparison))
 
 remove(yy_hist)
 
@@ -168,7 +168,7 @@ save_pages(yy_hist,
            name = paste0(species, '_geom_yy_hist.pdf'),
            nrow = 3,
            ncol = 4,
-           facets = vars(year_mon))
+           facets = vars(comparison))
 
 # Summarize difference distribution as zero/non-zero ===========================
 out_flat <- summarize(yy_compare_flat,
