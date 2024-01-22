@@ -88,6 +88,7 @@ yy_plot <- ggplot(yy_compare_flat,
                                         nrow = 3,
                                         ncol = 4)+
            scale_fill_distiller(palette = 'RdBu',
+                                direction = -1,
                                 na.value = '#cccccc')+
            theme_bw()+
            theme(legend.direction = 'horizontal',
@@ -113,6 +114,7 @@ yy_plot <- ggplot(yy_compare_geom,
                                nrow = 3,
                                ncol = 4)+
   scale_fill_distiller(palette = 'RdBu',
+                       direction = -1,
                        na.value = '#cccccc')+
   theme_bw()+
   theme(legend.direction = 'horizontal',
