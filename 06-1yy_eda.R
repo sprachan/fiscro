@@ -133,8 +133,8 @@ remove(yy_plot)
 
 # Plot histograms of differences ===============================================
 yy_hist <- yy_compare_flat |>
-           # mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
-           #                                   .default = transform_diff)) |>
+           mutate(diff_log = case_when(diff_log == 0 ~ NA,
+                                       .default = diff_log)) |>
            ggplot(aes(#x = transform_diff)
                        x = diff_log))+
            geom_histogram(bins = 200)+
@@ -169,3 +169,22 @@ save_pages(yy_hist,
            nrow = 3,
            ncol = 4,
            facets = vars(year_mon))
+
+# Summarize difference distribution as zero/non-zero ===========================
+out_flat <- summarize(yy_compare_flat,
+                      decrease = sum(diff_log < 0),
+                      no_change = sum(diff_log == 0),
+                      increase = sum(diff_log > 0))
+
+out_geom <- summarize(yy_compare_geom,
+                      decrease = sum(diff_log < 0),
+                      no_change = sum(diff_log == 0),
+                      increase = sum(diff_log > 0))
+
+out <- bind_rows(list(flat = out_flat, geom = out_geom),
+                 .id = 'smooth_type')
+# output -- print and save as file
+print(out)
+write.csv(out, file = file.path('~', 'eBird_project', 'summary_output', 
+                                  species,
+                                  'yy_diffs.csv'))
