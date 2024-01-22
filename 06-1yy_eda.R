@@ -172,16 +172,16 @@ save_pages(yy_hist,
 
 # Summarize difference distribution as zero/non-zero ===========================
 out_flat <- summarize(yy_compare_flat,
-                      decrease = sum(diff_log < 0, na.rm = TRUE),
-                      no_change = sum(diff_log == 0, na.rm = TRUE),
-                      increase = sum(diff_log > 0, na.rm = TRUE),
-                      na = sum(is.na(diff_log)))
+                      decrease = sum(diff_log < 0, na.rm = TRUE)/n(),
+                      no_change = sum(diff_log == 0, na.rm = TRUE)/n(),
+                      increase = sum(diff_log > 0, na.rm = TRUE)/n(),
+                      na = sum(is.na(diff_log))/n())
 
 out_geom <- summarize(yy_compare_geom,
-                      decrease = sum(diff_log < 0, na.rm = TRUE),
-                      no_change = sum(diff_log == 0, na.rm = TRUE),
-                      increase = sum(diff_log > 0, na.rm = TRUE),
-                      na = sum(is.na(diff_log)))
+                      decrease = sum(diff_log < 0, na.rm = TRUE)/n(),
+                      no_change = sum(diff_log == 0, na.rm = TRUE)/n(),
+                      increase = sum(diff_log > 0, na.rm = TRUE)/n(),
+                      na = sum(is.na(diff_log))/n())
 
 out <- bind_rows(list(flat = out_flat, geom = out_geom),
                  .id = 'smooth_type')
