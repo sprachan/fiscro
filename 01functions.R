@@ -325,7 +325,7 @@ compare_months <- function(data_in, years, smooth_type, epsilon = 1e-2){
           tidyr::expand(tidyr::nesting(year_mon = zoo::as.yearmon(year_mon),
                                        log_of = lapply(obs_freq, \(x) log10(x + epsilon))),
                         tidyr::nesting(year_mon2 = zoo::as.yearmon(year_mon),
-                                       log_of2 = logof)) |>
+                                       log_of2 = log_of)) |>
           dplyr::filter(lubridate::year(year_mon) %in% years,
                         lubridate::year(year_mon) == lubridate::year(year_mon2),
                         lubridate::month(year_mon) == lubridate::month(year_mon2)-1) |>
