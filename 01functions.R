@@ -46,7 +46,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
         ggplot2::ggplot()+
         ggplot2::geom_raster(ggplot2::aes(x = long_bin, 
                                           y = lat_bin, 
-                                          fill = transform_diff))+
+                                          fill = diff_log))+
         ggplot2::facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
         ggplot2::scale_fill_distiller(palette = 'RdBu', 
                                       direction = -1, 
@@ -57,12 +57,12 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
     }
   }else if(plot_type == 'hist'){
     temp <- data_in |>
-            dplyr::mutate(transform_diff = dplyr::case_when(transform_diff == 0 ~ NA,
-                                                            .default = transform_diff))
+            dplyr::mutate(diff_log = dplyr::case_when(diff_log == 0 ~ NA,
+                                                      .default = diff_log))
     for(j in 1:length(years)){
       p_save[[j]] <- dplyr::filter(temp, lubridate::year(year_mon) == years[j]) |>
                      ggplot2::ggplot()+
-                     ggplot2::geom_histogram(ggplot2::aes(x = transform_diff), 
+                     ggplot2::geom_histogram(ggplot2::aes(x = diff_log), 
                                               bins = 200)+
                      ggplot2::facet_wrap(facets = facets, 
                                          ncol = ncol, 
