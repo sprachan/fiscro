@@ -38,7 +38,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
   stopifnot('plot_type must be map or hist' = type_catch)
   
   # function
-  years <- unique(year(data_in$year_mon))
+  years <- unique(lubridate::year(data_in$year_mon))
   p_save <- list()
   if(plot_type == 'map'){
     for(j in 1:length(years)){
