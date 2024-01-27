@@ -42,7 +42,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
   p_save <- list()
   if(plot_type == 'map'){
     for(j in 1:length(years)){
-      p_save[[j]] <- dplyr::filter(data_in, year(year_mon) == years[j]) |>
+      p_save[[j]] <- dplyr::filter(data_in, lubridate::year(year_mon) == years[j]) |>
         ggplot2::ggplot()+
         ggplot2::geom_raster(ggplot2::aes(x = long_bin, 
                                           y = lat_bin, 
