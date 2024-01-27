@@ -71,7 +71,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
     }
   }
 
-  pdf(paste0(path, name), width = 11, height = 8.5)
+  pdf(file.path(path, name), width = 11, height = 8.5)
   lapply(p_save, print)
   dev.off()
 }
