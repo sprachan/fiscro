@@ -152,8 +152,8 @@ mm_compare_flat <- compare_months(ym_obs_freq,
 save_pages_break(mm_compare_flat,
                  path = file.path(fp, 'comparisons', species),
                  name = paste0(species, '_flat_mm.pdf'),
-                 ncol = 3,
-                 nrow = 4,
+                 ncol = 4,
+                 nrow = 3,
                  facets = vars(comparison),
                  plot_type = 'map')
 print('saved pages for flat smoothed month-on-month comparisons')
