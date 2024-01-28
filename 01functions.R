@@ -38,15 +38,15 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
   stopifnot('plot_type must be map or hist' = type_catch)
   
   # function
-  years <- unique(year(data_in$year_mon))
+  years <- unique(lubridate::year(data_in$year_mon))
   p_save <- list()
   if(plot_type == 'map'){
     for(j in 1:length(years)){
-      p_save[[j]] <- dplyr::filter(data_in, year(year_mon) == years[j]) |>
+      p_save[[j]] <- dplyr::filter(data_in, lubridate::year(year_mon) == years[j]) |>
         ggplot2::ggplot()+
         ggplot2::geom_raster(ggplot2::aes(x = long_bin, 
                                           y = lat_bin, 
-                                          fill = transform_diff))+
+                                          fill = diff_log))+
         ggplot2::facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
         ggplot2::scale_fill_distiller(palette = 'RdBu', 
                                       direction = -1, 
@@ -57,12 +57,12 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
     }
   }else if(plot_type == 'hist'){
     temp <- data_in |>
-            dplyr::mutate(transform_diff = dplyr::case_when(transform_diff == 0 ~ NA,
-                                                            .default = transform_diff))
+            dplyr::mutate(diff_log = dplyr::case_when(diff_log == 0 ~ NA,
+                                                      .default = diff_log))
     for(j in 1:length(years)){
       p_save[[j]] <- dplyr::filter(temp, lubridate::year(year_mon) == years[j]) |>
                      ggplot2::ggplot()+
-                     ggplot2::geom_histogram(ggplot2::aes(x = transform_diff), 
+                     ggplot2::geom_histogram(ggplot2::aes(x = diff_log), 
                                               bins = 200)+
                      ggplot2::facet_wrap(facets = facets, 
                                          ncol = ncol, 
@@ -71,7 +71,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
     }
   }
 
-  pdf(paste0(path, name), width = 11, height = 8.5)
+  pdf(file.path(path, name), width = 11, height = 8.5)
   lapply(p_save, print)
   dev.off()
 }
@@ -207,7 +207,7 @@ get_bin <- function(data_set, breaks){
 
 df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
   # error catching
-  nest_check <- grepl('ym', nest_by)|grepl('comparison'|nest_by)
+  nest_check <- grepl('ym', nest_by)|grepl('comparison', nest_by)
   stopifnot('nest_by must be ym or comparison' = nest_check)
   
   # function
@@ -228,7 +228,8 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
                             lat_bin = 1:n) |>		     
             dplyr::filter(comparison == over) |>
             dplyr::arrange(long_bin, lat_bin) 
-    temp <- matrix(temp$transform_diff, nrow = n, ncol = n, byrow = TRUE)
+    #transform_mat <- matrix(temp$transform_diff, nrow = n, ncol = n, byrow = TRUE)
+    temp <- matrix(temp$diff_log, nrow = n, ncol = n, byrow = TRUE)
     return(temp)
   }
 }
@@ -239,7 +240,8 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
 #> difference in observation frequency between the same bin in different 
 #> years. Bins are compared between the same month of consecutive years.
 
-compare_years <- function(data_in, smooth_type){
+compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
+  epsilon <- as.numeric(epsilon)
   # error catching
   type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
   stopifnot('smooth_type must be flat or geom' = type_catch)
@@ -253,21 +255,17 @@ compare_years <- function(data_in, smooth_type){
           lapply(as.vector) |> 
           tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
           tidyr::expand(tidyr::nesting(year_mon = zoo::as.yearmon(year_mon),
-                                       obs_freq),
+                                       log_of = lapply(obs_freq, \(x) log10(x + epsilon))),
                         tidyr::nesting(year_mon2 = zoo::as.yearmon(year_mon),
-                                       obs_freq2 = obs_freq)) |>
+                                       log_of2 = log_of)) |>
           dplyr::filter(lubridate::year(year_mon) == lubridate::year(year_mon2)-1,
                         lubridate::month(year_mon) == lubridate::month(year_mon2)) |>
           dplyr::mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
-                        diff = purrr::map2(obs_freq2, obs_freq, `-`)) |>
-          dplyr::select(-obs_freq, -obs_freq2, -year_mon, -year_mon2) |>
-          tidyr::unnest_longer(diff) |>
-          dplyr::mutate(diff = dplyr::case_when(is.nan(diff) ~ NA,
-                                                !is.nan(diff) ~ diff),
-                        transform_diff = dplyr::case_when(is.na(diff) ~ NA,
-                                                          diff < 0 ~ -sqrt(abs(diff)),
-                                                          diff == 0 ~ 0,
-                                                          diff > 0 ~ sqrt(abs(diff)))
+                        diff_log = purrr::map2(log_of2, log_of, `-`)) |>
+          dplyr::select(-log_of, -log_of2, -year_mon, -year_mon2) |>
+          tidyr::unnest_longer(diff_log) |>
+          dplyr::mutate(diff_log = dplyr::case_when(is.nan(diff_log) ~ NA,
+                                                    !is.nan(diff_log) ~ diff_log)
                        )
   
   n <- length(unique(temp$comparison))
@@ -280,19 +278,16 @@ compare_years <- function(data_in, smooth_type){
        purrr::set_names(com)
   
   if(smooth_type == 'flat'){
-    y <- map(y, flat_smooth)
+    y <- purrr::map(y, flat_smooth)
   }else if(smooth_type == 'geom'){
-    y <- map(y, geom_smooth) 
+    y <- purrr::map(y, geom_smooth) 
   }
   
   y <- purrr::set_names(y, com) |>
        lapply(t) |>
        lapply(as.vector) |>
-       tibble::enframe(name = 'comparison', value = 'transform_diff') |>
-       tidyr::unnest_longer(transform_diff) |>
-       dplyr::mutate(transform_diff = dplyr::case_when(is.nan(transform_diff) ~ NA,
-                                                       !is.nan(transform_diff)~transform_diff)
-                    )
+       tibble::enframe(name = 'comparison', value = 'diff_log') |>
+       tidyr::unnest_longer(diff_log)
   
   n <- length(unique(y$comparison))
   # add lat_bin, long_bin columns
@@ -313,7 +308,7 @@ compare_years <- function(data_in, smooth_type){
 #> different years. Bins are compared between consecutive months of the same 
 #> year.
 
-compare_months <- function(data_in, years, smooth_type){
+compare_months <- function(data_in, years, smooth_type, epsilon = 1e-2){
   # error catching
   type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
   stopifnot('smooth_type must be flat or geom' = type_catch)
@@ -328,23 +323,16 @@ compare_months <- function(data_in, years, smooth_type){
           lapply(as.vector) |> 
           tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
           tidyr::expand(tidyr::nesting(year_mon = zoo::as.yearmon(year_mon),
-                                       obs_freq),
+                                       log_of = lapply(obs_freq, \(x) log10(x + epsilon))),
                         tidyr::nesting(year_mon2 = zoo::as.yearmon(year_mon),
-                                       obs_freq2 = obs_freq)) |>
+                                       log_of2 = log_of)) |>
           dplyr::filter(lubridate::year(year_mon) %in% years,
                         lubridate::year(year_mon) == lubridate::year(year_mon2),
                         lubridate::month(year_mon) == lubridate::month(year_mon2)-1) |>
           dplyr::mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
-                         diff = purrr::map2(obs_freq2, obs_freq, `-`)) |>
-          dplyr::select(-obs_freq, -obs_freq2, -year_mon, -year_mon2) |>
-          tidyr::unnest_longer(diff) |>
-          dplyr::mutate(diff = dplyr::case_when(is.nan(diff) ~ NA,
-                                                !is.nan(diff) ~ diff),
-                        transform_diff = dplyr::case_when(is.na(diff) ~ NA,
-                                                          diff < 0 ~ -sqrt(abs(diff)),
-                                                          diff == 0 ~ 0,
-                                                          diff > 0 ~ sqrt(abs(diff)))
-                       )
+                        diff_log = purrr::map2(log_of2, log_of, `-`)) |>
+          dplyr::select(-log_of, -log_of2, -year_mon, -year_mon2) |>
+          tidyr::unnest_longer(diff_log)
   
   n <- length(unique(temp$comparison))
   # add lat_bin, long_bin columns
@@ -356,9 +344,9 @@ compare_months <- function(data_in, years, smooth_type){
   y <- purrr::map(com, \(x) df_to_mat(temp, over = x, nest_by = 'comparison')) |>
        purrr::set_names(com)
   if(smooth_type == 'flat'){
-    y <- map(y, flat_smooth)
+    y <- purrr::map(y, flat_smooth)
   }else if(smooth_type == 'geom'){
-    y <- map(y, geom_smooth) 
+    y <- purrr::map(y, geom_smooth) 
   }else{
     stop('Need valid smooth type, either flat or geom')
   }
@@ -366,10 +354,10 @@ compare_months <- function(data_in, years, smooth_type){
   y <- purrr::set_names(y, com) |>
        lapply(t) |>
        lapply(as.vector) |>
-       tibble::enframe(name = 'comparison', value = 'transform_diff') |>
-       tidyr::unnest_longer(transform_diff) |>
-       dplyr::mutate(transform_diff = dplyr::case_when(is.nan(transform_diff) ~ NA,
-                                                       !is.nan(transform_diff)~transform_diff)
+       tibble::enframe(name = 'comparison', value = 'diff_log') |>
+       tidyr::unnest_longer(diff_log) |>
+       dplyr::mutate(diff_log = dplyr::case_when(is.nan(diff_log) ~ NA,
+                                                 !is.nan(diff_log) ~ diff_log)
                     )
   
   n <- length(unique(y$comparison))

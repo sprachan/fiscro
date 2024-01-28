@@ -40,6 +40,7 @@ opt_parser = OptionParser(option_list = option_list);
 
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
+species <- opt$s
 
 ## load functions and set base file path ---------------------------------------
 source('01functions.R')
@@ -54,7 +55,7 @@ print('loaded')
 # filter data
 years <- seq(2010, 2022, by = 1)
 subsample <- filter(subsample, 
-                    year(observation_date) %in% years,
+                    lubridate::year(observation_date) %in% years,
                     species_code == opt$s)
 print('filtered')
 
@@ -62,7 +63,8 @@ print('filtered')
 ym_obs_freq <- mutate(subsample,
                       year_mon = as.yearmon(observation_date)) |>
                group_by(year_mon, long_bin, lat_bin) |>
-               summarize(obs_freq = sum(species_observed)/n())
+               summarize(obs_freq = sum(species_observed)/n()) |>
+               mutate(obs_freq = as.numeric(obs_freq))
 print('summarized')
 
 # free up some RAM
@@ -79,7 +81,8 @@ print('geom smooth done')
 yy_plot <- ggplot(yy_compare_flat,
                   aes(x = long_bin,
                       y = lat_bin,
-                      fill = transform_diff))+
+                      #fill = transform_diff)
+                      fill = diff_log))+
            geom_raster()+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
@@ -97,14 +100,15 @@ save_pages(yy_plot,
            name = paste0(species, '_flat_smoothed_yy.pdf'),
            nrow = 3,
            ncol = 4,
-           facets = vars(year_mon))
+           facets = vars(comparison))
 print('saved pages for flat smoothed year-on-year comparisons')
 
 remove(yy_plot)
 yy_plot <- ggplot(yy_compare_geom,
                   aes(x = long_bin,
                       y = lat_bin,
-                      fill = transform_diff))+
+                      #fill = transform_diff)
+                      fill = diff_log))+
   geom_raster()+
   ggforce::facet_wrap_paginate(facets = vars(comparison),
                                nrow = 3,
@@ -122,16 +126,17 @@ save_pages(yy_plot,
            name = paste0(species, '_geom_smoothed_yy.pdf'),
            nrow = 3,
            ncol = 4,
-           facets = vars(year_mon))
+           facets = vars(comparison))
 
 print('saved pages for geom smoothed year-on-year comparisons')
 remove(yy_plot)
 
 # Plot histograms of differences ===============================================
 yy_hist <- yy_compare_flat |>
-           mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
-                                             .default = transform_diff)) |>
-           ggplot(aes(x = transform_diff))+
+           mutate(diff_log = case_when(diff_log == 0 ~ NA,
+                                       .default = diff_log)) |>
+           ggplot(aes(#x = transform_diff)
+                       x = diff_log))+
            geom_histogram(bins = 200)+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
@@ -143,14 +148,15 @@ save_pages(yy_hist,
            name = paste0(species, '_flat_yy_hist.pdf'),
            nrow = 3,
            ncol = 4,
-           facets = vars(year_mon))
+           facets = vars(comparison))
 
 remove(yy_hist)
 
 yy_hist <- yy_compare_geom |>
-           mutate(transform_diff = case_when(transform_diff == 0 ~ NA,
-                                             .default = transform_diff)) |>
-           ggplot(aes(x = transform_diff))+
+           mutate(diff_log = case_when(diff_log == 0 ~ NA,
+                                             .default = diff_log)) |>
+           ggplot(aes(#x = transform_diff)
+                      x = diff_log))+
            geom_histogram(bins = 200)+
            ggforce::facet_wrap_paginate(facets = vars(comparison),
                                         nrow = 3,
@@ -162,4 +168,25 @@ save_pages(yy_hist,
            name = paste0(species, '_geom_yy_hist.pdf'),
            nrow = 3,
            ncol = 4,
-           facets = vars(year_mon))
+           facets = vars(comparison))
+
+# Summarize difference distribution as zero/non-zero ===========================
+out_flat <- summarize(yy_compare_flat,
+                      decrease = sum(diff_log < 0, na.rm = TRUE)/n(),
+                      no_change = sum(diff_log == 0, na.rm = TRUE)/n(),
+                      increase = sum(diff_log > 0, na.rm = TRUE)/n(),
+                      na = sum(is.na(diff_log))/n())
+
+out_geom <- summarize(yy_compare_geom,
+                      decrease = sum(diff_log < 0, na.rm = TRUE)/n(),
+                      no_change = sum(diff_log == 0, na.rm = TRUE)/n(),
+                      increase = sum(diff_log > 0, na.rm = TRUE)/n(),
+                      na = sum(is.na(diff_log))/n())
+
+out <- bind_rows(list(flat = out_flat, geom = out_geom),
+                 .id = 'smooth_type')
+# output -- print and save as file
+print(out)
+write.csv(out, file = file.path('~', 'eBird_project', 'summary_output', 
+                                paste0(species, '_yy_diffs.csv')
+                                ))
