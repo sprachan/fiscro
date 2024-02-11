@@ -163,9 +163,9 @@ flat_smooth <- function(matrix_in, scope = 1){
 }
 
 # Data Formatting Functions ====================================================
+
 #> DESCRIPTION: Given a data set and a vector of breaks from kde2d, assign the
 #> checklist data a longitude bin (and a latitude bin) according to the breaks.
-
 get_bin <- function(data_set, breaks){
   # vector that will give the breaks above our long/lat
   upper <- which(data_set < breaks)
@@ -175,11 +175,10 @@ get_bin <- function(data_set, breaks){
   # edge case: above the highest break
   if(length(upper) == 0){
     if(length(lower) == 0){
-      # this should give NA because it shouldn't be possible to be both
-      #> outside of the upper AND lower bound
+      # shouldn't be possible to be outside of the upper AND lower bound
       return(NA)
     }else{
-      # just give index of the max lower bound
+      # give index of the max lower bound if there are no breaks above the value
       return(max(lower))
     }
     # edge case: below the lowest break
@@ -204,174 +203,145 @@ get_bin <- function(data_set, breaks){
 #> cells by -- that is, should each unique year-month have a full
 #> set of cells ('ym'), or should each unique comparison have a full set of cells
 #> ('comparison')?
-
 df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
   # error catching
   nest_check <- grepl('ym', nest_by)|grepl('comparison', nest_by)
   stopifnot('nest_by must be ym or comparison' = nest_check)
   
   # function
-  temp <- dplyr::ungroup(df)
+  out <- dplyr::ungroup(df)
   if(nest_by == 'ym'){
-    temp <- tidyr::complete(temp, 
-                            tidyr::nesting(year_mon),
-                            long_bin = 1:n,
-                            lat_bin = 1:n) |>
+    out <- tidyr::complete(out, 
+                           tidyr::nesting(year_mon),
+                           long_bin = 1:n,
+                           lat_bin = 1:n) |>
             dplyr::filter(year_mon == over) |>
             dplyr::arrange(long_bin, lat_bin)
-    temp <- matrix(temp$obs_freq, nrow = n, ncol = n, byrow = TRUE)
-    return(temp)
+    out <- matrix(out$obs_freq, nrow = n, ncol = n, byrow = TRUE)
+    return(out)
   }else if(nest_by == 'comparison'){
-    temp <- tidyr::complete(temp, 
-                            tidyr::nesting(comparison),
-                            long_bin = 1:n,
-                            lat_bin = 1:n) |>		     
+    out <- tidyr::complete(out, 
+                           tidyr::nesting(comparison),
+                           long_bin = 1:n,
+                           lat_bin = 1:n) |>		     
             dplyr::filter(comparison == over) |>
             dplyr::arrange(long_bin, lat_bin) 
-    #transform_mat <- matrix(temp$transform_diff, nrow = n, ncol = n, byrow = TRUE)
-    temp <- matrix(temp$diff_log, nrow = n, ncol = n, byrow = TRUE)
-    return(temp)
+    out <- matrix(out$diff, nrow = n, ncol = n, byrow = TRUE)
+    return(out)
   }
 }
 
+#> DESCRIPTION: Turn a list of <n> x <n> matrices into a 2-column dataframe where
+#> one column ("enf_name", a string) is the "category" (ie., year_mon or 
+#> comparison) and the other column ("enf_value", a string) is a vector of 
+#> values (observation frequencies or differences in observation frequencies).
+#> enf_name should be either year_mon or comparison
+#> enf_value should be obs_freq or diff
+
+mats_to_vecdf <- function(matrix_list, enf_name, enf_value){
+  out <- lapply(matrix_list, t) |>
+         lapply(as.vector) |>
+         tibble::enframe(name = enf_name, value = enf_value)
+  return(out)
+}
 # Comparison functions ---------------------------------------------------------
 
-#> DESCRIPTION: Given an observation frequency data frame, calculate the 
-#> difference in observation frequency between the same bin in different 
-#> years. Bins are compared between the same month of consecutive years.
-
-compare_years <- function(data_in, smooth_type, epsilon = 1e-2){
-  epsilon <- as.numeric(epsilon)
+#> DESCRIPTION: Given a vector df (obs_freq is a vector of values for the given
+#> year_mon), produce a df with every relevant combination of year_mons where
+#> values are the difference in obs_freq from the two time periods (late-early).
+get_diff <- function(vecs_in, type){
   # error catching
-  type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
-  stopifnot('smooth_type must be flat or geom' = type_catch)
+  catch <- grepl('yy', type)|grepl('mm', type)
+  stopifnot('type must be mm or yy' = catch)
   
-  # function
-  yms <- unique(data_in$year_mon)
-  # make a data frame that has transformed differences
-  temp <- purrr::map(yms, \(x) df_to_mat(data_in, over = x, nest_by = 'ym')) |> 
-          purrr::set_names(yms) |> 
-          lapply(t) |>
-          lapply(as.vector) |> 
-          tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
-          tidyr::expand(tidyr::nesting(year_mon = zoo::as.yearmon(year_mon),
-                                       log_of = lapply(obs_freq, \(x) log10(x + epsilon))),
-                        tidyr::nesting(year_mon2 = zoo::as.yearmon(year_mon),
-                                       log_of2 = log_of)) |>
-          dplyr::filter(lubridate::year(year_mon) == lubridate::year(year_mon2)-1,
-                        lubridate::month(year_mon) == lubridate::month(year_mon2)) |>
-          dplyr::mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
-                        diff_log = purrr::map2(log_of2, log_of, `-`)) |>
-          dplyr::select(-log_of, -log_of2, -year_mon, -year_mon2) |>
-          tidyr::unnest_longer(diff_log) |>
-          dplyr::mutate(diff_log = dplyr::case_when(is.nan(diff_log) ~ NA,
-                                                    !is.nan(diff_log) ~ diff_log)
-                       )
+  # get all possible combinations of year_mons
+  out <- vecs_in |> tidyr::expand(tidyr::nesting(year_mon = zoo::as.yearmon(year_mon),
+                                                 obs_freq = obs_freq),
+                                  tidyr::nesting(year_mon2 = year_mon,
+                                                 obs_freq2 = obs_freq))
   
-  n <- length(unique(temp$comparison))
-  # add lat_bin, long_bin columns
-  temp <- temp |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
-                                lat_bin = rep(rep(1:200, times = 200), n))  
-  
-  com <- unique(temp$comparison)
-  y <- purrr::map(com, \(x) df_to_mat(temp, over = x, nest_by = 'comparison')) |>
-       purrr::set_names(com)
-  
-  if(smooth_type == 'flat'){
-    y <- purrr::map(y, flat_smooth)
-  }else if(smooth_type == 'geom'){
-    y <- purrr::map(y, geom_smooth) 
+  # filter to just relevant combinations
+  if(type == 'yy'){
+    # year on year comparisons: take consecutive years for the same month
+    out <- dplyr::filter(out,
+                         lubridate::year(year_mon) == lubridate::year(year_mon2)-1,
+                         lubridate::month(year_mon) == lubridate::month(year_mon2))
+  }else if(type == 'mm'){
+    # month on month comparisons: take consecutive months in the same year
+    out <- dplyr::filter(out,
+                         lubridate::year(year_mon) == lubridate::year(year_mon2),
+                         lubridate::month(year_mon) == lubridate::month(year_mon2)-1)
   }
   
-  y <- purrr::set_names(y, com) |>
-       lapply(t) |>
-       lapply(as.vector) |>
-       tibble::enframe(name = 'comparison', value = 'diff_log') |>
-       tidyr::unnest_longer(diff_log)
+  # make a comparison column, take the differences; drop unneeded columns
+  #> left with a df with the comparison in one column and the associated 
+  #> difference in another.
+  out <- dplyr::mutate(out,
+                       comparison = paste(year_mon, year_mon2, sep = '_'),
+                       diff = purrr::map2(obs_freq2, obs_freq, `-`)
+                      ) |>
+         dplyr::select(-year_mon, -year_mon2, -obs_freq, -obs_freq2) 
   
-  n <- length(unique(y$comparison))
-  # add lat_bin, long_bin columns
-  y <- y |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
-                          lat_bin = rep(rep(1:200, times = 200), n),
-                          year_mon = zoo::as.yearmon(substring(comparison, 1, 8)))|> 
-            dplyr::arrange(lubridate::year(year_mon), lubridate::month(year_mon))
-  
-  # make comparison into a factor, making sure its ordered correctly
-  y$comparison <- factor(y$comparison, 
-                         levels = unique(y$comparison), 
-                         ordered = TRUE)
-  return(y)
+  return(out)
 }
 
-#> DESCRIPTION: Given an observation frequency data frame and a set of years, 
-#> calculate the difference in observation frequency between the same bin in 
-#> different years. Bins are compared between consecutive months of the same 
-#> year.
-
-compare_months <- function(data_in, years, smooth_type, epsilon = 1e-2){
-  # error catching
-  type_catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
-  stopifnot('smooth_type must be flat or geom' = type_catch)
+#> DESCRIPTION: Smooth a df of comparisons (ie., the result of unnesting a
+#> get_diff output). Outputs a vector df.
+smooth_compared <- function(df_in, smooth_type){
+  catch <- grepl('flat', smooth_type)|grepl('geom', smooth_type)
+  stopifnot('smooth_type must be flat or geom' = catch)
   
-  # function
-  yms <- unique(data_in$year_mon)
+  com <- unique(df_in$comparison)
+  n <- length(com)
   
-  # make a data frame that has transformed differences
-  temp <- purrr::map(yms, \(x) df_to_mat(data_in, over = x, nest_by = 'ym')) |> 
-          purrr::set_names(yms) |> 
-          lapply(t) |>
-          lapply(as.vector) |> 
-          tibble::enframe(name = 'year_mon', value = 'obs_freq') |>
-          tidyr::expand(tidyr::nesting(year_mon = zoo::as.yearmon(year_mon),
-                                       log_of = lapply(obs_freq, \(x) log10(x + epsilon))),
-                        tidyr::nesting(year_mon2 = zoo::as.yearmon(year_mon),
-                                       log_of2 = log_of)) |>
-          dplyr::filter(lubridate::year(year_mon) %in% years,
-                        lubridate::year(year_mon) == lubridate::year(year_mon2),
-                        lubridate::month(year_mon) == lubridate::month(year_mon2)-1) |>
-          dplyr::mutate(comparison = paste(year_mon, year_mon2, sep = '_'),
-                        diff_log = purrr::map2(log_of2, log_of, `-`)) |>
-          dplyr::select(-log_of, -log_of2, -year_mon, -year_mon2) |>
-          tidyr::unnest_longer(diff_log)
+  # add in lat/long bin columns for compatibility with df_to_mat, which
+  #> is needed for smoothing
+  out <- df_in |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
+                                lat_bin = rep(rep(1:200, times = 200), n))
   
-  n <- length(unique(temp$comparison))
-  # add lat_bin, long_bin columns
-  temp <- temp |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
-                                lat_bin = rep(rep(1:200, times = 200), n))  
+  out <- purrr::map(com, \(x) df_to_mat(out, over = x, nest_by = 'comparison')) |>
+         purrr::set_names(com)
   
-  com <- unique(temp$comparison)
-  
-  y <- purrr::map(com, \(x) df_to_mat(temp, over = x, nest_by = 'comparison')) |>
-       purrr::set_names(com)
   if(smooth_type == 'flat'){
-    y <- purrr::map(y, flat_smooth)
+    out <- purrr::map(out, flat_smooth)
   }else if(smooth_type == 'geom'){
-    y <- purrr::map(y, geom_smooth) 
-  }else{
-    stop('Need valid smooth type, either flat or geom')
+    out <- purrr::map(out, geom_smooth) 
   }
   
-  y <- purrr::set_names(y, com) |>
-       lapply(t) |>
-       lapply(as.vector) |>
-       tibble::enframe(name = 'comparison', value = 'diff_log') |>
-       tidyr::unnest_longer(diff_log) |>
-       dplyr::mutate(diff_log = dplyr::case_when(is.nan(diff_log) ~ NA,
-                                                 !is.nan(diff_log) ~ diff_log)
-                    )
+  out <- purrr::set_names(out, com) |>
+         mats_to_vecdf(enf_name = 'comparison', enf_value = 'diff') |>
+         tidyr::unnest_longer(diff)
   
-  n <- length(unique(y$comparison))
-  
-  # add lat_bin, long_bin columns
-  y <- y |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
-                          lat_bin = rep(rep(1:200, times = 200), n),
-                          year_mon = zoo::as.yearmon(substring(comparison, 1, 8)))|> 
-            dplyr::arrange(lubridate::year(year_mon), lubridate::month(year_mon))
-  
-  # make comparison into a factor, making sure its ordered correctly
-  y$comparison <- factor(y$comparison, 
-                         levels = unique(y$comparison), 
-                         ordered = TRUE)
-  return(y)
+  return(out)
 }
 
+#> DESCRIPTION: Given an observation frequency data frame, return a data frame
+#> that has the difference in observation frequency between the same cell in
+#> either the same month in consecutive years ('yy') or consecutive months in
+#> the same year ('mm'). Wrapper for get_diff and smooth_compare.
+compare <- function(data_in, time_type, smooth_type){
+  yms <- unique(data_in$year_mon)
+  out <- purrr::map(yms, \(x) df_to_mat(data_in, over = x, nest_by = 'ym')) |>
+         purrr::set_names(yms) |>
+         mats_to_vecdf(enf_name = 'year_mon', enf_value = 'obs_freq') |>
+         get_diff(type = time_type)
+        
+  # make regular df with one row for each long bin/lat bin/comparison combination
+  out <- tidyr::unnest_longer(out, diff)
+  
+  # smooth, if applicable
+  if(smooth_type != 'none'){
+    out <- smooth_compared(out, smooth_type = smooth_type)
+  }
+  
+  # make comparison into a factor, making sure its ordered correctly
+  out$comparison <- factor(out$compariso
+                           n, 
+                           levels = unique(out$comparison), 
+                           ordered = TRUE)
+  n <- length(unique(out$comparison))
+  # add lat/long bin columns
+  out <- out |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
+                              lat_bin = rep(rep(1:200, times = 200), n))
+  return(out)
+}
