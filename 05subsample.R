@@ -24,7 +24,7 @@ library(MASS)
 
 # get options from command line for flexibility
 library(optparse)
-
+source('01functions.R')
 ## Parse command line options ----
 option_list <- list(
   make_option(c('-n', '--numbins'), type = 'integer', 
