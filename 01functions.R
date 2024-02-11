@@ -335,8 +335,7 @@ compare <- function(data_in, time_type, smooth_type){
   }
   
   # make comparison into a factor, making sure its ordered correctly
-  out$comparison <- factor(out$compariso
-                           n, 
+  out$comparison <- factor(out$comparison, 
                            levels = unique(out$comparison), 
                            ordered = TRUE)
   n <- length(unique(out$comparison))
