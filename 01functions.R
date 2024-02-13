@@ -122,7 +122,7 @@ hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
   p <- dplyr::filter(data_in, n_lists >= 20) |>
        ggplot2::ggplot(ggplot2::aes(log10(obs_freq+epsilon)))+
        ggplot2::geom_histogram(bins = 100)+
-       ggplot2::ggforce(facet_wrap_paginate(facets = ggplot2::vars(year_mon),
+       ggforce::facet_wrap_paginate(facets = ggplot2::vars(year_mon),
                                             nrow = nrow,
                                             ncol = ncol))+
        ggplot2::theme_bw()
