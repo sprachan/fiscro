@@ -83,7 +83,7 @@ print('geom smooth done')
 # Plot as maps =================================================================
 save_pages_break(mm_compare_flat,
                  path = file.path(fp, 'comparisons', species),
-                 name = paste0(species, '_flat_mm.pdf'),
+                 name = paste0(species, '_mm_flat.pdf'),
                  ncol = 4,
                  nrow = 3,
                  facets = vars(comparison),
@@ -93,7 +93,7 @@ print('saved pages for flat smoothed month-on-month comparisons')
 
 save_pages_break(mm_compare_geom,
                  path = file.path(fp, 'comparisons', species),
-                 name = paste0(species, '_geom_mm.pdf'),
+                 name = paste0(species, '_mm_geom.pdf'),
                  ncol = 4,
                  nrow = 3,
                  facets = vars(comparison),
@@ -104,7 +104,7 @@ print('saved pages for geom smoothed month-on-month comparisons')
 # Plot histograms of differences ===============================================
 save_pages_break(mm_compare_flat,
                  path = file.path(fp, 'comparisons', species),
-                 name = paste0(species, '_flat_mm_hist.pdf'),
+                 name = paste0(species, '_mm_flat_hist.pdf'),
                  ncol = 4,
                  nrow = 3,
                  facets = vars(comparison),
@@ -113,7 +113,7 @@ save_pages_break(mm_compare_flat,
 
 save_pages_break(mm_compare_geom,
                  path = file.path(fp, 'comparisons', species),
-                 name = paste0(species, '_geom_mm_hist.pdf'),
+                 name = paste0(species, '_mm_geom_hist.pdf'),
                  ncol = 4,
                  nrow = 3,
                  facets = vars(comparison),
