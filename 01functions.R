@@ -116,8 +116,8 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
 }
 
 hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
-  p <- ggplot(data_in,
-              aes(log10(obs_freq+epsilon)))+
+  p <- filter(data_in, n_lists >= 20) |>
+       ggplot(aes(log10(obs_freq+epsilon)))+
        geom_histogram(bins = 100)+
        ggforce(facet_wrap_paginate(facets = vars(year_mon),
                                    nrow = nrow,
