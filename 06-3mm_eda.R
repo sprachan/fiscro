@@ -109,7 +109,7 @@ save_pages_break(mm_compare_flat,
                  nrow = 3,
                  facets = vars(comparison),
                  plot_type = 'hist')
-
+print('saved pages for flat smoothed month-on-month hists')
 
 save_pages_break(mm_compare_geom,
                  path = file.path(fp, 'comparisons', species),
@@ -118,3 +118,4 @@ save_pages_break(mm_compare_geom,
                  nrow = 3,
                  facets = vars(comparison),
                  plot_type = 'hist')
+print('saved pages for geom smoothed month-on-month hists')
