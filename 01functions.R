@@ -327,7 +327,7 @@ df_smoother <- function(df, df_type, smooth_type){
   stopifnot('smooth_type must be flat or geom' = smooth_catch)
   
   if(df_type == 'raw'){
-    over <- unique(df$year_month)
+    over <- unique(df$year_mon)
     nest_by <- 'ym'
     enf_name <- 'year_mon'
     enf_value <- 'obs_freq'
@@ -356,7 +356,7 @@ df_smoother <- function(df, df_type, smooth_type){
   
   if(df_type == 'raw'){
     out <- tidyr::unnest_longer(vec_df, obs_freq)
-    n <- length(unique(df$year_month))
+    n <- length(unique(df$year_mon))
   }else if(df_type == 'comp'){
     out <- tidyr::unnest_longer(vec_df, diff)
     n <- length(unique(df$comparison))
@@ -423,7 +423,7 @@ compare <- function(data_in, time_type, smooth_type){
                get_diff(type = time_type)
   
   # make regular df with one row for each long bin/lat bin/comparison combination
-  diff_df <- tidyr::unnest_longer(out, diff_vecs)
+  diff_df <- tidyr::unnest_longer(diff_vecs, diff)
   rm(diff_vecs) # free up RAM
   
   # smooth, if applicable
