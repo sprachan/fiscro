@@ -95,6 +95,38 @@ cutoff_plot <- function(data_in, cutoff, title){
   return(p)
 }
 
+#> DESCRIPTION: Given a dataframe of observation frequencies with 
+#> associated long and lat bins, make a ggplot object for mapping.
+
+map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
+  p <- ggplot(data_in,
+              aes(x = long_bin, 
+                  y = lat_bin,
+                  fill = log10(obs_freq+epsilon)))+
+       geom_raster()+
+       ggforce::facet_wrap_paginate(facets = vars(year_mon),
+                                             nrow = nrow,
+                                             ncol = ncol)+
+       scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+       theme_bw()+
+       theme(legend.direction = 'horizontal',
+             legend.position = 'bottom')+
+       labs(fill = paste0('log(OF+', epsilon, ')'))
+  return(p)
+}
+
+hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
+  p <- ggplot(data_in,
+              aes(log10(obs_freq+epsilon)))+
+       geom_histogram(bins = 100)+
+       ggforce(facet_wrap_paginate(facets = vars(year_mon),
+                                   nrow = nrow,
+                                   ncol = ncol))+
+       theme_bw()
+  return(p)
+}
+
+
 # Data Formatting Functions ====================================================
 
 #> DESCRIPTION: Given a data set and a vector of breaks from kde2d, assign the
