@@ -119,7 +119,7 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
 #> associated long and lat bins, make a ggplot object for histograms.
 
 hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
-  p <- ggplot2::ggplot(ggplot2::aes(log10(obs_freq+epsilon)))+
+  p <- ggplot2::ggplot(data_in, ggplot2::aes(log10(obs_freq+epsilon)))+
        ggplot2::geom_histogram(bins = 100)+
        ggforce::facet_wrap_paginate(facets = ggplot2::vars(year_mon),
                                             nrow = nrow,
@@ -427,9 +427,12 @@ compare <- function(data_in, time_type, smooth_type){
   
   # smooth, if applicable
   if(smooth_type != 'none'){
-    diff_df <- df_smoother(diff_df, 
-                           df_type = 'comp', 
-                           smooth_type = smooth_type)
+      n <- length(unique(diff_df$comparison))
+      diff_df <- dplyr::mutate(diff_df,
+                               long_bin = rep(rep(1:200, each = 200), n),
+                               lat_bin = rep(rep(1:200, times = 200), n)) |>
+                  df_smoother(df_type = 'comp', 
+                              smooth_type = smooth_type)
   }
   
   # make comparison into a factor, making sure its ordered correctly
