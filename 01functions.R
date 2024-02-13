@@ -124,7 +124,7 @@ hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
        ggplot2::geom_histogram(bins = 100)+
        ggforce::facet_wrap_paginate(facets = ggplot2::vars(year_mon),
                                             nrow = nrow,
-                                            ncol = ncol))+
+                                            ncol = ncol)+
        ggplot2::theme_bw()
   return(p)
 }
