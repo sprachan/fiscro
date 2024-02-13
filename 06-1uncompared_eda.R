@@ -43,8 +43,8 @@ opt_parser = OptionParser(option_list = option_list);
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
 species <- opt$s
-eps <- opt$e
-
+eps <- opt$e |> as.numeric()
+print(eps)
 ## load functions and set base file path ---------------------------------------
 source('01functions.R')
 
@@ -77,6 +77,7 @@ remove(subsample)
 # Unsmoothed Data EDA ==========================================================
 # mapping
 month_plot <- map_uncompared(ym_obs_freq, epsilon = eps)
+print('ggobj created for raw monthly maps')
 
 save_pages(month_plot,
            path = file.path(fp, 'monthly', species),
@@ -90,7 +91,7 @@ remove(month_plot) # free up some RAM
 
 # histogram
 month_hist <- hist_uncompared(ym_obs_freq, epsilon = eps)
-
+print('ggobj created for histograms')
 save_pages(month_hist,
            path = file.path(fp, 'monthly', species),
            name = paste0(species, '_monthly_hist.pdf'),
@@ -102,7 +103,7 @@ print('saved raw monthly histograms')
 
 
 ## flat smoothed data ----------------------------------------------------------
-smoothed_df <- df_smoother(ym_obs_freq, smooth_type = 'flat', over = 'ym')
+smoothed_df <- df_smoother(df = ym_obs_freq, df_type = 'raw', smooth_type = 'flat')
 # mapping
 month_plot <- map_uncompared(smoothed_df, epsilon = eps)
 
@@ -128,7 +129,7 @@ save_pages(month_hist,
 print('saved flat smoothed monthly histograms')
 
 ## geom smoothed data ----------------------------------------------------------
-smoothed_df <- df_smoother(ym_obs_freq, smooth_type = 'geom', over = 'ym')
+smoothed_df <- df_smoother(df = ym_obs_freq, df_type = 'raw', smooth_type = 'geom')
 # mapping
 month_plot <- map_uncompared(smoothed_df, epsilon = eps)
 
