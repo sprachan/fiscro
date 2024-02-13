@@ -128,6 +128,8 @@ hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
   return(p)
 }
 
+#> DESCRIPTION: Given a dataframe of differences in observation frequencies with 
+#> associated long and lat bins, make a ggplot object for mapping.
 map_compared <- function(data_in, nrow = 3, ncol = 4){
   p <- dplyr::mutate(data_in, 
                      transform_diff = dplyr::case_when(diff < 0 ~ -sqrt(abs(diff)),
@@ -154,10 +156,13 @@ map_compared <- function(data_in, nrow = 3, ncol = 4){
   return(p)
 }
 
+#> DESCRIPTION: Given a dataframe of differences in observation frequencies with 
+#> associated long and lat bins, make a ggplot object for histograms.
+
 hist_compared <- function(data_in, nrow = 3, ncol = 4){
   p <- dplyr::filter(data_in, diff != 0) |>
-       ggplot(aes(diff))+
-       geom_histogram(bins = 150)+
+       ggplot2::ggplot(ggplot2::aes(diff))+
+       ggplot2::geom_histogram(bins = 150)+
        ggforce::facet_wrap_paginate(facets = ggplot2::vars(year_mon),
                                     nrow = nrow,
                                     ncol = ncol)+
