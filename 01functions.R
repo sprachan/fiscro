@@ -119,8 +119,7 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
 #> associated long and lat bins, make a ggplot object for histograms.
 
 hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
-  p <- dplyr::filter(data_in, n_lists >= 20) |>
-       ggplot2::ggplot(ggplot2::aes(log10(obs_freq+epsilon)))+
+  p <- ggplot2::ggplot(ggplot2::aes(log10(obs_freq+epsilon)))+
        ggplot2::geom_histogram(bins = 100)+
        ggforce::facet_wrap_paginate(facets = ggplot2::vars(year_mon),
                                             nrow = nrow,
@@ -320,26 +319,26 @@ flat_smooth <- function(matrix_in, scope = 1){
 
 df_smoother <- function(df, df_type, smooth_type){
   # check arguments
-  df_catch <- grepl('raw', df_type)|grepl('comp', df_type)
+  df_catch <- df_type %in% c('raw', 'comp')
   stopifnot('df_type must be raw or comp' = df_catch)
   
-  smooth_catch <- grepl('geom', smooth_type)|grepl('flat', smooth_type)|grepl('none', smooth_type)
+  smooth_catch <- smooth_type %in% c('flat', 'geom', 'none')
   stopifnot('smooth_type must be flat or geom' = smooth_catch)
   
   if(df_type == 'raw'){
-    over <- unique(df$year_mon)
+    iter <- unique(df$year_mon)
     nest_by <- 'ym'
     enf_name <- 'year_mon'
     enf_value <- 'obs_freq'
   }else if(df_type == 'comp'){
-    over <- unique(df$comparison)
+    iter <- unique(df$comparison)
     nest_by <- 'comparison'
     enf_name <- 'comparison'
     enf_value <- 'diff'
   }
   
-  mats <- purrr::map(over, \(x) df_to_mat(df, over = x, nest_by = nest_by)) |>
-          purrr::set_names(over)
+  mats <- purrr::map(iter, \(x) df_to_mat(df, over = x, nest_by = nest_by)) |>
+          purrr::set_names(iter)
   
   if(smooth_type == 'flat'){
     smooth_mats <- purrr::map(mats, flat_smooth)
@@ -349,7 +348,7 @@ df_smoother <- function(df, df_type, smooth_type){
   
   rm(mats) # free up some RAM
   
-  vec_df <- purrr::set_names(smooth_mats, over) |>
+  vec_df <- purrr::set_names(smooth_mats, iter) |>
             mats_to_vecdf(enf_name = enf_name, enf_value = enf_value)
   
   rm(smooth_mats) # free up RAM
@@ -429,7 +428,7 @@ compare <- function(data_in, time_type, smooth_type){
   # smooth, if applicable
   if(smooth_type != 'none'){
     diff_df <- df_smoother(diff_df, 
-                           df_type = 'comparison', 
+                           df_type = 'comp', 
                            smooth_type = smooth_type)
   }
   
