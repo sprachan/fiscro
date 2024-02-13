@@ -115,18 +115,56 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
   return(p)
 }
 
+#> DESCRIPTION: Given a dataframe of observation frequencies with 
+#> associated long and lat bins, make a ggplot object for histograms.
+
 hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
-  p <- filter(data_in, n_lists >= 20) |>
-       ggplot(aes(log10(obs_freq+epsilon)))+
-       geom_histogram(bins = 100)+
-       ggforce(facet_wrap_paginate(facets = vars(year_mon),
-                                   nrow = nrow,
-                                   ncol = ncol))+
-       theme_bw()
+  p <- dplyr::filter(data_in, n_lists >= 20) |>
+       ggplot2::ggplot(ggplot2::aes(log10(obs_freq+epsilon)))+
+       ggplot2::geom_histogram(bins = 100)+
+       ggplot2::ggforce(facet_wrap_paginate(facets = ggplot2::vars(year_mon),
+                                            nrow = nrow,
+                                            ncol = ncol))+
+       ggplot2::theme_bw()
   return(p)
 }
 
+map_compared <- function(data_in, nrow = 3, ncol = 4){
+  p <- dplyr::mutate(data_in, 
+                     transform_diff = dplyr::case_when(diff < 0 ~ -sqrt(abs(diff)),
+                                                       diff == 0 ~ 0,
+                                                       diff > 0 ~ sqrt(abs(diff)),
+                                                       is.nan(diff) ~ NA
+                                                      )
+                      ) |>
+    ggplot2::ggplot(ggplot2::aes(x = long_bin, 
+                                 y = lat_bin,
+                                 fill = transform_diff))+
+    ggplot2::geom_raster()+
+    ggforce::facet_wrap_paginate(facets = ggplot2::vars(comparison),
+                                 nrow = nrow,
+                                 ncol = ncol)+
+    ggplot2::scale_fill_distiller(palette = 'RdBu', 
+                                  direction = -1,
+                                  na.value = '#cccccc')+
+    ggplot2::theme_bw()+
+    ggplot2::theme(legend.direction = 'horizontal',
+          legend.position = 'bottom')+
+    ggplot2::labs(fill = ' sign sqrt-transformed diff')
+  
+  return(p)
+}
 
+hist_compared <- function(data_in, nrow = 3, ncol = 4){
+  p <- dplyr::filter(data_in, diff != 0) |>
+       ggplot(aes(diff))+
+       geom_histogram(bins = 150)+
+       ggforce::facet_wrap_paginate(facets = ggplot2::vars(year_mon),
+                                    nrow = nrow,
+                                    ncol = ncol)+
+       ggplot2::theme_bw()
+  return(p)
+}
 # Data Formatting Functions ====================================================
 
 #> DESCRIPTION: Given a data set and a vector of breaks from kde2d, assign the
