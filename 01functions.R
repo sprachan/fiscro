@@ -37,37 +37,39 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
   type_catch <- grepl('map', plot_type)|grepl('hist', plot_type)
   stopifnot('plot_type must be map or hist' = type_catch)
   
-  # function
-  years <- unique(lubridate::year(data_in$year_mon))
+  df <- dplyr::mutate(data_in,
+                      year_mon = zoo::as.yearmon(substr(comparison, 1, 8))
+                      )
+  
+  years <- unique(lubridate::year(df$year_mon))
   p_save <- list()
   if(plot_type == 'map'){
     for(j in 1:length(years)){
-      p_save[[j]] <- dplyr::filter(data_in, lubridate::year(year_mon) == years[j]) |>
-        ggplot2::ggplot()+
-        ggplot2::geom_raster(ggplot2::aes(x = long_bin, 
-                                          y = lat_bin, 
-                                          fill = diff_log))+
-        ggplot2::facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
-        ggplot2::scale_fill_distiller(palette = 'RdBu', 
-                                      direction = -1, 
-                                      na.value = '#cccccc')+
-        ggplot2::theme_bw()+
-        ggplot2::theme(legend.direction = 'horizontal',
-                       legend.position = 'bottom')
+      p_save[[j]] <- dplyr::filter(df, lubridate::year(year_mon) == years[j]) |>
+                     ggplot2::ggplot()+
+                     ggplot2::geom_raster(ggplot2::aes(x = long_bin, 
+                                                       y = lat_bin, 
+                                                       fill = diff_log))+
+                     ggplot2::facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
+                     ggplot2::scale_fill_distiller(palette = 'RdBu', 
+                                                   direction = -1, 
+                                                   na.value = '#cccccc')+
+                     ggplot2::theme_bw()+
+                     ggplot2::theme(legend.direction = 'horizontal',
+                                    legend.position = 'bottom')
     }
   }else if(plot_type == 'hist'){
-    temp <- data_in |>
-      dplyr::mutate(diff_log = dplyr::case_when(diff_log == 0 ~ NA,
-                                                .default = diff_log))
     for(j in 1:length(years)){
-      p_save[[j]] <- dplyr::filter(temp, lubridate::year(year_mon) == years[j]) |>
-        ggplot2::ggplot()+
-        ggplot2::geom_histogram(ggplot2::aes(x = diff_log), 
-                                bins = 200)+
-        ggplot2::facet_wrap(facets = facets, 
-                            ncol = ncol, 
-                            nrow = nrow)+
-        ggplot2::theme_bw()
+      p_save[[j]] <- dplyr::filter(temp, 
+                                   lubridate::year(year_mon) == years[j],
+                                   diff != 0) |>
+                     ggplot2::ggplot()+
+                     ggplot2::geom_histogram(ggplot2::aes(x = diff_log), 
+                                             bins = 200)+
+                     ggplot2::facet_wrap(facets = facets, 
+                                         ncol = ncol, 
+                                         nrow = nrow)+
+                     ggplot2::theme_bw()
     }
   }
   

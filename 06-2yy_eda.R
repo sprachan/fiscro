@@ -106,7 +106,7 @@ print('saved pages for geom smoothed year-on-year comparisons')
 remove(yy_plot)
 
 # Plot histograms of differences ===============================================
-yy_hist <- hist_compared(yy_compared_flat)
+yy_hist <- hist_compared(yy_compare_flat)
 print('made flat smoothed hist ggobj')
 
 save_pages(yy_hist,
@@ -118,7 +118,7 @@ save_pages(yy_hist,
 print('saved pages for flat hists, year-on-year comparisons')
 remove(yy_hist)
 
-yy_hist <- hist_compared(yy_compared_geom)
+yy_hist <- hist_compared(yy_compare_geom)
 print('made geom smoothed hist ggobj')
 save_pages(yy_hist,
            path = file.path(fp, 'comparisons', species),
