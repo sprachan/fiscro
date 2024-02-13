@@ -65,6 +65,7 @@ ym_obs_freq <- mutate(subsample,
                group_by(year_mon, long_bin, lat_bin) |>
                summarize(obs_freq = sum(species_observed)/n(),
                          n_lists = n()) |>
+               filter(n_lists >= 20) |>
                mutate(obs_freq = as.numeric(obs_freq))
 print('summarized')
 

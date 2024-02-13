@@ -90,7 +90,8 @@ print('saved raw monthly plots')
 remove(month_plot) # free up some RAM
 
 # histogram
-month_hist <- hist_uncompared(ym_obs_freq, epsilon = eps)
+month_hist <- filter(ym_obs_freq, n_lists >= 20) |>
+              hist_uncompared(epsilon = eps)
 print('ggobj created for histograms')
 save_pages(month_hist,
            path = file.path(fp, 'monthly', species),
@@ -102,7 +103,7 @@ print('saved raw monthly histograms')
                        
 
 
-## flat smoothed data ----------------------------------------------------------
+# flat smoothed data ----------------------------------------------------------
 smoothed_df <- df_smoother(df = ym_obs_freq, df_type = 'raw', smooth_type = 'flat')
 # mapping
 month_plot <- map_uncompared(smoothed_df, epsilon = eps)
@@ -130,7 +131,7 @@ save_pages(month_hist,
            facets = vars(year_mon))
 print('saved flat smoothed monthly histograms')
 
-## geom smoothed data ----------------------------------------------------------
+# geom smoothed data ----------------------------------------------------------
 smoothed_df <- df_smoother(df = ym_obs_freq, df_type = 'raw', smooth_type = 'geom')
 # mapping
 month_plot <- map_uncompared(smoothed_df, epsilon = eps)
