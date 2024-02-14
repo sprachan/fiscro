@@ -49,7 +49,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
                      ggplot2::ggplot()+
                      ggplot2::geom_raster(ggplot2::aes(x = long_bin, 
                                                        y = lat_bin, 
-                                                       fill = diff_log))+
+                                                       fill = transform_diff))+
                      ggplot2::facet_wrap(facets = facets, ncol = ncol, nrow = nrow)+
                      ggplot2::scale_fill_distiller(palette = 'RdBu', 
                                                    direction = -1, 
@@ -64,7 +64,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
                                    lubridate::year(year_mon) == years[j],
                                    diff != 0) |>
                      ggplot2::ggplot()+
-                     ggplot2::geom_histogram(ggplot2::aes(x = diff_log), 
+                     ggplot2::geom_histogram(ggplot2::aes(x = transform_diff), 
                                              bins = 200)+
                      ggplot2::facet_wrap(facets = facets, 
                                          ncol = ncol, 
