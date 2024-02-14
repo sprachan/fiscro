@@ -60,7 +60,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
     }
   }else if(plot_type == 'hist'){
     for(j in 1:length(years)){
-      p_save[[j]] <- dplyr::filter(temp, 
+      p_save[[j]] <- dplyr::filter(df, 
                                    lubridate::year(year_mon) == years[j],
                                    diff != 0) |>
                      ggplot2::ggplot()+
