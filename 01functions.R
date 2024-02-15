@@ -37,15 +37,11 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
   type_catch <- grepl('map', plot_type)|grepl('hist', plot_type)
   stopifnot('plot_type must be map or hist' = type_catch)
   
-  df <- dplyr::mutate(data_in,
-                      year_mon = zoo::as.yearmon(substr(comparison, 1, 8))
-                      )
-  
-  years <- unique(lubridate::year(df$year_mon))
+  years <- unique(lubridate::year(data_in$year_mon))
   p_save <- list()
   if(plot_type == 'map'){
     for(j in 1:length(years)){
-      p_save[[j]] <- dplyr::filter(df, lubridate::year(year_mon) == years[j]) |>
+      p_save[[j]] <- dplyr::filter(data_in, lubridate::year(year_mon) == years[j]) |>
                      ggplot2::ggplot()+
                      ggplot2::geom_raster(ggplot2::aes(x = long_bin, 
                                                        y = lat_bin, 
@@ -60,7 +56,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
     }
   }else if(plot_type == 'hist'){
     for(j in 1:length(years)){
-      p_save[[j]] <- dplyr::filter(df, 
+      p_save[[j]] <- dplyr::filter(data_in, 
                                    lubridate::year(year_mon) == years[j],
                                    diff != 0) |>
                      ggplot2::ggplot()+
@@ -447,8 +443,11 @@ compare <- function(data_in, time_type, smooth_type){
                                levels = unique(diff_df$comparison), 
                                ordered = TRUE)
   n <- length(unique(diff_df$comparison))
-  # add lat/long bin columns
+  
+  # add lat/long bin columns and comparison column
   out <- diff_df |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
-                                  lat_bin = rep(rep(1:200, times = 200), n))
+                                  lat_bin = rep(rep(1:200, times = 200), n),
+                                  comparison = zoo::as.yearmon(substr(comparison, 1, 8)))
+
   return(out)
 }
