@@ -97,8 +97,8 @@ cutoff_plot <- function(data_in, cutoff, title){
 #> associated long and lat bins, make a ggplot object for mapping.
 
 map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
-  p <- ggplot(data_in,
-              aes(x = long_bin, 
+  p <- dplyr::arrange(data_in, year_mon) |>
+      ggplot(aes(x = long_bin, 
                   y = lat_bin,
                   fill = log10(obs_freq+epsilon)))+
        geom_raster()+
@@ -117,7 +117,8 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
 #> associated long and lat bins, make a ggplot object for histograms.
 
 hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
-  p <- ggplot2::ggplot(data_in, ggplot2::aes(log10(obs_freq+epsilon)))+
+  p <- dplyr::arrange(data_in, year_mon) |>
+       ggplot2::ggplot(ggplot2::aes(log10(obs_freq+epsilon)))+
        ggplot2::geom_histogram(bins = 100)+
        ggforce::facet_wrap_paginate(facets = ggplot2::vars(year_mon),
                                             nrow = nrow,
