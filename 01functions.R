@@ -444,7 +444,7 @@ compare <- function(data_in, time_type, smooth_type){
                                   lat_bin = rep(rep(1:200, times = 200), n),
                                   comparison = zoo::as.yearmon(substr(comparison, 1, 8)),
                                   transform_diff = dplyr::case_when(diff < 0 ~ -sqrt(abs(diff)),
-                                                                    diff = 0 ~ 0,
+                                                                    diff == 0 ~ 0,
                                                                     diff > 0 ~ sqrt(abs(diff))))
 
   return(out)
