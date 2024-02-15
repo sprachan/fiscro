@@ -129,16 +129,10 @@ hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
 #> DESCRIPTION: Given a dataframe of differences in observation frequencies with 
 #> associated long and lat bins, make a ggplot object for mapping.
 map_compared <- function(data_in, nrow = 3, ncol = 4){
-  p <- dplyr::mutate(data_in, 
-                     transform_diff = dplyr::case_when(diff < 0 ~ -sqrt(abs(diff)),
-                                                       diff == 0 ~ 0,
-                                                       diff > 0 ~ sqrt(abs(diff)),
-                                                       is.nan(diff) ~ NA
-                                                      )
-                      ) |>
-    ggplot2::ggplot(ggplot2::aes(x = long_bin, 
-                                 y = lat_bin,
-                                 fill = transform_diff))+
+  p <- ggplot2::ggplot(data_in, 
+                       ggplot2::aes(x = long_bin, 
+                                    y = lat_bin,
+                                    fill = transform_diff))+
     ggplot2::geom_raster()+
     ggforce::facet_wrap_paginate(facets = ggplot2::vars(comparison),
                                  nrow = nrow,
@@ -444,10 +438,13 @@ compare <- function(data_in, time_type, smooth_type){
                                ordered = TRUE)
   n <- length(unique(diff_df$comparison))
   
-  # add lat/long bin columns and comparison column
+  # add lat/long bin columns, comparison column, and transform_diff column
   out <- diff_df |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
                                   lat_bin = rep(rep(1:200, times = 200), n),
-                                  comparison = zoo::as.yearmon(substr(comparison, 1, 8)))
+                                  comparison = zoo::as.yearmon(substr(comparison, 1, 8)),
+                                  transform_diff = dplyr::case_when(diff < 0 ~ -sqrt(abs(diff)),
+                                                                    diff = 0 ~ 0,
+                                                                    diff > 0 ~ sqrt(abs(diff))))
 
   return(out)
 }
