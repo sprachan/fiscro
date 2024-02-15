@@ -156,7 +156,7 @@ hist_compared <- function(data_in, nrow = 3, ncol = 4){
   p <- dplyr::filter(data_in, diff != 0) |>
        ggplot2::ggplot(ggplot2::aes(diff))+
        ggplot2::geom_histogram(bins = 150)+
-       ggforce::facet_wrap_paginate(facets = ggplot2::vars(year_mon),
+       ggforce::facet_wrap_paginate(facets = ggplot2::vars(comparison),
                                     nrow = nrow,
                                     ncol = ncol)+
        ggplot2::theme_bw()
@@ -439,10 +439,9 @@ compare <- function(data_in, time_type, smooth_type){
                                ordered = TRUE)
   n <- length(unique(diff_df$comparison))
   
-  # add lat/long bin columns, comparison column, and transform_diff column
+  # add lat/long bin columns, year_mon column, and transform_diff column
   out <- diff_df |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
                                   lat_bin = rep(rep(1:200, times = 200), n),
-                                  comparison = zoo::as.yearmon(substr(comparison, 1, 8)),
                                   transform_diff = dplyr::case_when(diff < 0 ~ -sqrt(abs(diff)),
                                                                     diff == 0 ~ 0,
                                                                     diff > 0 ~ sqrt(abs(diff))))
