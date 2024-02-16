@@ -442,7 +442,7 @@ compare <- function(data_in, time_type, smooth_type){
   # add lat/long bin columns, year_mon column, and transform_diff column
   out <- diff_df |> dplyr::mutate(long_bin = rep(rep(1:200, each = 200), n),
                                   lat_bin = rep(rep(1:200, times = 200), n),
-                                  year_mon = zoo::as.yearmon(substr(comparison, 1, 8)) |>
+                                  year_mon = zoo::as.yearmon(substr(comparison, 1, 8)),
                                   transform_diff = dplyr::case_when(diff < 0 ~ -sqrt(abs(diff)),
                                                                     diff == 0 ~ 0,
                                                                     diff > 0 ~ sqrt(abs(diff))))
