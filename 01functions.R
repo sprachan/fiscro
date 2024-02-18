@@ -233,8 +233,8 @@ get_bin <- function(data_set, breaks){
 
 df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
   # error catching
-  nest_check <- grepl('ym', nest_by)|grepl('comparison', nest_by)
-  stopifnot('nest_by must be ym or comparison' = nest_check)
+  nest_check <- nest_by %in% c('ym', 'comparison', 'week')
+  stopifnot('nest_by must be ym, comparison, or week' = nest_check)
   
   # function
   out <- dplyr::ungroup(df)
@@ -255,6 +255,18 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
       dplyr::filter(comparison == over) |>
       dplyr::arrange(long_bin, lat_bin) 
     out <- matrix(out$diff, nrow = n, ncol = n, byrow = TRUE)
+    return(out)
+  }else if(nest_by == 'week'){
+    out <- tidyr::expand(out,
+                         tidyr::nesting(year),
+                         week = 1:52,
+                         long_bin = 1:n,
+                         lat_bin = 1:n) |>
+           dplyr::full_join(df) |>
+           dplyr::filter(week == over) |>
+           dplyr::arrange(year, lat_bin, long_bin)
+    arr <- array(out$obs_freq, dim = c(200, 200, 14))
+    out <- apply(X = arr, MARGIN = c(1, 2), mean, na.rm = TRUE)
     return(out)
   }
 }
