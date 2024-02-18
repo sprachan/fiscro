@@ -51,29 +51,7 @@ source('01functions.R')
 fp <- file.path('~', 'eBird_project', 'plots')
 
 # Load Data ====================================================================
-load('./processed_data/subsample.RData')
-
-print('loaded')
-
-# filter data
-years <- seq(2010, 2022, by = 1)
-subsample <- filter(subsample, 
-                    lubridate::year(observation_date) %in% years,
-                    species_code == opt$s)
-print('filtered')
-
-# process data
-ym_obs_freq <- mutate(subsample,
-                      year_mon = as.yearmon(observation_date)) |>
-  group_by(year_mon, long_bin, lat_bin) |>
-  summarize(obs_freq = sum(species_observed)/n(),
-            n_lists = n()) |>
-  mutate(obs_freq = as.numeric(obs_freq))
-print('summarized')
-
-# free up some RAM
-remove(subsample)
-
+ym_obs_freq <- load_data()
 # Unsmoothed Data EDA ==========================================================
 # mapping
 month_plot <- map_uncompared(ym_obs_freq, epsilon = eps)

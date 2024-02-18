@@ -59,8 +59,8 @@ print(tag)
 # Load combined data -- this takes a minute
 load('./processed_data/combined_zf.RData')
 str(combined_zf)
-# only need checklist id and location information (lat and long)
 
+# only need checklist id and location information (lat and long)
 lists_location <- dplyr::select(combined_zf,
                                 checklist_id,
                                 latitude,

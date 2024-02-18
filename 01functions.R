@@ -1,3 +1,29 @@
+# Convenience Functions ========================================================
+load_data <- function(fp = './processed_data/subsample.RData',
+                      years = seq(2010, 2022, by = 1)){
+  load(fp)
+  print('loaded')
+  str(subsample)
+  # filter data
+  subsample <- dplyr::filter(subsample, 
+                             lubridate::year(observation_date) %in% years,
+                             species_code == opt$s)
+  print('filtered')
+  
+  # process data
+  ym_obs_freq <- dplyr::mutate(subsample,
+                               year_mon = zoo::as.yearmon(observation_date)) |>
+                 dplyr::group_by(year_mon, long_bin, lat_bin) |>
+                 dplyr::summarize(obs_freq = sum(species_observed)/dplyr::n(),
+                                  n_lists = dplyr::n()) |>
+                 dplyr::mutate(obs_freq = as.numeric(obs_freq))
+  print('summarized')
+  
+  return(ym_obs_freq)
+}
+
+
+
 # Plotting Functions ===========================================================
 
 #> DESCRIPTION: saves ggobj input to a pdf file (letter paper in landscape)

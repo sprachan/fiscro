@@ -49,28 +49,7 @@ fp <- file.path('~', 'eBird_project', 'plots')
 
 # Wrangle data =================================================================
 # load data
-load('./processed_data/subsample.RData')
-
-print('loaded')
-
-# filter data
-years <- seq(2010, 2022, by = 1)
-subsample <- filter(subsample, 
-            		    lubridate::year(observation_date) %in% years,
-            		    species_code == species)
-print('filtered')
-
-# process data
-ym_obs_freq <- mutate(subsample,
-            		      year_mon = as.yearmon(observation_date)) |>
-            		      group_by(year_mon, long_bin, lat_bin) |>
-            		      summarize(obs_freq = sum(species_observed)/n(),
-            		                n_lists = n())
-print('summarized')
-
-
-# free up some RAM
-remove(subsample)
+ym_obs_freq <- load_data()
 
 
 # Smooth and compare ===========================================================
