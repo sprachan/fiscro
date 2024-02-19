@@ -4,15 +4,13 @@
 #> latitude/longitude cell for each week of the year.
 #>
 # ------------------------------------------------------------------------------
-
+fp <- file.path('~', 'eBird_project', 'weekly')
 # Dependencies =================================================================
 ## packages ----
 library(dplyr)
 library(optparse) 
 ## functions ----
 source('01functions.R')
-
-## options ----
 
 ## get options ----
 option_list <- list(make_option(c('-s', '--speciesCode'),
@@ -60,10 +58,12 @@ avg_mats <- purrr::map(1:52, \(x) df_to_mat(weekly, over = x, nest_by = 'week'))
             purrr::set_names(wks)
 smoothed <- lapply(avg_mats, geom_smooth)
 
-pdf(file = '~/week_plots.pdf')
+n1 <- paste0(species, '_raw.pdf')
+pdf(file = file.path(fp, n1))
 lapply(avg_mats, image, col = cols)
 dev.off()
 
-pdf(file = '~/week_plots2.pdf')
+n2 <- paste0(species, '_geom.pdf')
+pdf(file = file.path(fp, n2))
 lapply(smoothed, image, col = cols)
 dev.off()
