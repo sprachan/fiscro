@@ -24,7 +24,7 @@ library(MASS)
 
 # get options from command line for flexibility
 library(optparse)
-
+source('01functions.R')
 ## Parse command line options ----
 option_list <- list(
   make_option(c('-n', '--numbins'), type = 'integer', 
@@ -59,8 +59,8 @@ print(tag)
 # Load combined data -- this takes a minute
 load('./processed_data/combined_zf.RData')
 str(combined_zf)
-# only need checklist id and location information (lat and long)
 
+# only need checklist id and location information (lat and long)
 lists_location <- dplyr::select(combined_zf,
                                 checklist_id,
                                 latitude,
@@ -68,13 +68,8 @@ lists_location <- dplyr::select(combined_zf,
                   distinct(.keep_all = TRUE)
 str(lists_location)
 
-# get RAM back!
-rm(combined_zf)
-
 # Sampling =====================================================================
-
 # kde2d to get a probability density estimate for a given latitude and longitude
-
 probs <- kde2d(lists_location$longitude, 
                lists_location$latitude,
                n = num_bins)
@@ -101,8 +96,9 @@ lat_bins_1  <- lapply(lists_location$latitude, get_bin, probs$y) |>
 lists_location <- mutate(lists_location,
                          long_bin = long_bins_1,
                          lat_bin = lat_bins_1,
-		         cell = (long_bin-1)*num_bins+lat_bin,
-		         weight = 1/(prob_vec[cell]+epsilon))
+            		         cell = (long_bin-1)*num_bins+lat_bin,
+            		         weight = 1/(prob_vec[cell]+epsilon))
+str(lists_location)
 
 print('bin check: ')
 print(sum(lists_location$cell == 0))
@@ -114,9 +110,10 @@ remove(lat_bins_1)
 
 
 # sample! do this on as small a df as possible to speed up runtimes
-list_subsample <- lists_location |> select(checklist_id, long_bin, lat_bin) |>
-	                 	                slice_sample(n = sample_size, 
-						                                     weight_by = lists_location$weight)
+list_subsample <- lists_location |> 
+                  dplyr::select(checklist_id, long_bin, lat_bin, weight) |>
+	                slice_sample(n = sample_size, 
+						                   weight_by = lists_location$weight)
 	
 print('sampled')
 str(list_subsample)
