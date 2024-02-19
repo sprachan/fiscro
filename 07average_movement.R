@@ -15,18 +15,18 @@ source('01functions.R')
 ## options ----
 
 ## get options ----
-# option_list <- list(make_option(c('-s', '--speciesCode'), 
-#                                 type = 'character',
-#                                 action = 'store', 
-#                                 help = 'species for analysis')
-# )
-# 
-# # create a parser object
-# opt_parser = OptionParser(option_list = option_list);
-# 
-# # make a list of the arguments passed via command line
-# opt = parse_args(opt_parser);
-# species <- opt$s
+option_list <- list(make_option(c('-s', '--speciesCode'),
+                                type = 'character',
+                                action = 'store',
+                                help = 'species for analysis')
+)
+
+# create a parser object
+opt_parser = OptionParser(option_list = option_list);
+
+# make a list of the arguments passed via command line
+opt = parse_args(opt_parser);
+species <- opt$s
 
 # Load and Wrangle Data ========================================================
 # testing purposes:
