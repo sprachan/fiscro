@@ -60,7 +60,7 @@ smoothed <- lapply(avg_mats, geom_smooth)
 
 n1 <- paste0(species, '_raw.pdf')
 pdf(file = file.path(fp, n1))
-purrr::map(1:5, \(x) image(avg_mats[[x]], 
+purrr::map(1:52, \(x) image(avg_mats[[x]], 
                             col = cols, 
                             main = as.character(x),
                             cex.main = 0.8))
