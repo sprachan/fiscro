@@ -4,7 +4,7 @@
 #> latitude/longitude cell for each week of the year.
 #>
 # ------------------------------------------------------------------------------
-fp <- file.path('~', 'eBird_project', 'weekly')
+fp <- file.path('~', 'eBird_project', 'plots', 'weekly')
 # Dependencies =================================================================
 ## packages ----
 library(dplyr)
