@@ -265,8 +265,7 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
            dplyr::full_join(df) |>
            dplyr::filter(week == over) |>
            dplyr::arrange(year, lat_bin, long_bin)
-    arr <- array(out$obs_freq, dim = c(200, 200, 14))
-    out <- apply(X = arr, MARGIN = c(1, 2), mean, na.rm = TRUE)
+    out <- array(out$obs_freq, dim = c(200, 200, 14))
     return(out)
   }
 }

@@ -55,6 +55,7 @@ for(i in 1:52){
 }
 cols <- viridis::viridis(200, option = 'inferno')
 avg_mats <- purrr::map(1:52, \(x) df_to_mat(weekly, over = x, nest_by = 'week')) |>
+            lapply(apply, MARGIN = c(1,2), mean, na.rm = TRUE) |>
             purrr::set_names(wks)
 smoothed <- lapply(avg_mats, geom_smooth)
 
