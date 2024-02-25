@@ -57,7 +57,7 @@ for(i in 1:365){
 avg_mats <- purrr::map(1:365, \(x) df_to_slide_mat(daily, x)) |>
             purrr::set_names(day_name) |>
             lapply(geom_smooth)
-cols <- viridis::viridis(100, option = 'inferno')
+cols <- viridis::viridis(200, option = 'inferno')
 n <- paste0(opt$s, '_slide.pdf')
 pdf(file = file.path(fp, n))
 purrr::map(1:365, \(x) image(avg_mats[[x]],
