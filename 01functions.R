@@ -122,20 +122,32 @@ cutoff_plot <- function(data_in, cutoff, title){
 #> DESCRIPTION: Given a dataframe of observation frequencies with 
 #> associated long and lat bins, make a ggplot object for mapping.
 
-map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
-  p <- dplyr::arrange(data_in, year_mon) |>
+map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, year_mon = TRUE, over = ''){
+  if(year_mon == TRUE){
+    p <- dplyr::arrange(data_in, year_mon) |>
       ggplot(aes(x = long_bin, 
-                  y = lat_bin,
-                  fill = log10(obs_freq+epsilon)))+
-       geom_raster()+
-       ggforce::facet_wrap_paginate(facets = vars(year_mon),
-                                             nrow = nrow,
-                                             ncol = ncol)+
-       scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
-       theme_bw()+
-       theme(legend.direction = 'horizontal',
-             legend.position = 'bottom')+
-       labs(fill = paste0('log(OF+', epsilon, ')'))
+                 y = lat_bin,
+                 fill = log10(obs_freq+epsilon)))+
+      geom_raster()+
+      ggforce::facet_wrap_paginate(facets = vars(year_mon),
+                                   nrow = nrow,
+                                   ncol = ncol)+
+      viridis::scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+      ggplot2::theme_bw()+
+      ggplot2::theme(legend.direction = 'horizontal',
+                     legend.position = 'bottom')+
+      ggplot2::labs(fill = paste0('log(OF+', epsilon, ')'))
+  }else{
+    p <- dplyr::filter(data_in, day == over) |>
+         ggplot2::ggplot(aes(x = long_bin,
+                             y = lat_bin,
+                             fill = log10(obs_freq+epsilon)))+
+         ggplot2::geom_raster()+
+         viridis::scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+         ggplot2::theme_bw()+
+         ggplot2::labs(fill = paste0('log(OF+', epsilon, ')'),
+                       title = over)
+  }
   return(p)
 }
 

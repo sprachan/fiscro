@@ -50,18 +50,26 @@ daily <- subsample |> filter(species_code == opt$s,
                                 obs_freq = species_observed/n_lists)
 
 # Average Movements ============================================================
-day_name <- rep('', 365)
-for(i in 1:365){
-  day_name[i] <- paste0('day', i)
-}
-avg_mats <- purrr::map(1:365, \(x) df_to_slide_mat(daily, x)) |>
-            purrr::set_names(day_name) |>
-            lapply(geom_smooth)
+# set up titles and colors
+names <- lubridate::make_date(2022, 1, 1)+lubridate::days(1:365-1)
+names <- format(names, '%b-%d')
 cols <- viridis::viridis(200, option = 'inferno')
+
+# get matrices
+avg_mats <- purrr::map(1:365, \(x) df_to_slide_mat(daily, x)) |>
+            purrr::set_names(names) |>
+            lapply(geom_smooth)
+
+# convert matrices to a data frame for nice ggplot plotting
+avg_df <- mats_to_vecdf(avg_mats, enf_name = 'day', enf_value = 'obs_freq') |>
+          tidyr::unnest_longer(obs_freq) |>
+          dplyr::mutate(long_bin = rep(rep(1:200, each = 200), 365),
+                        lat_bin = rep(rep(1:200, times = 200), 365))
+
 n <- paste0(opt$s, '_slide.pdf')
 pdf(file = file.path(fp, n))
-purrr::map(1:365, \(x) image(avg_mats[[x]],
-                             col = cols,
-                             main = as.character(x),
-                             cex.main = 0.8))
+purrr::map(names, \(x) map_uncompared(avg_df, 
+                                      epsilon = 1e-3, 
+                                      year_mon = FALSE,
+                                      over = x))
 dev.off()
