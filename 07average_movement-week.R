@@ -69,7 +69,7 @@ dev.off()
 
 n2 <- paste0(species, '_geom.pdf')
 pdf(file = file.path(fp, n2))
-purrr::map(1:52, \(x) image(avg_mats[[x]],
+purrr::map(1:52, \(x) image(smoothed[[x]],
                             col = cols,
                             main = as.character(x),
                             cex.main = 0.8))

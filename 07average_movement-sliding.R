@@ -34,20 +34,20 @@ load('./processed_data/subsample.RData')
 
 daily <- subsample |> filter(species_code == opt$s,
                              lubridate::year(observation_date) >= 2010) |>
-  select(long_bin,
-         lat_bin,
-         species_code,
-         observation_count,
-         species_observed,
-         observation_date)|>
-  mutate(day = lubridate::yday(observation_date),
-         year = lubridate::year(observation_date)
-  ) |>
-  group_by(long_bin, lat_bin, day, year) |>
-  summarize(observation_count = sum(observation_count),
-            species_observed = sum(species_observed),
-            n_lists = n(),
-            obs_freq = species_observed/n_lists)
+                      select(long_bin,
+                             lat_bin,
+                             species_code,
+                             observation_count,
+                             species_observed,
+                             observation_date)|>
+                      mutate(day = lubridate::yday(observation_date),
+                             year = lubridate::year(observation_date)
+                      ) |>
+                      group_by(long_bin, lat_bin, day, year) |>
+                      summarize(observation_count = sum(observation_count),
+                                species_observed = sum(species_observed),
+                                n_lists = n(),
+                                obs_freq = species_observed/n_lists)
 
 # Average Movements ============================================================
 day_name <- rep('', 365)
