@@ -283,6 +283,41 @@ mats_to_vecdf <- function(matrix_list, enf_name, enf_value){
     tibble::enframe(name = enf_name, value = enf_value)
   return(out)
 }
+
+#> DESCRIPTION: Get the window of days from day x to 7 days after day x. This
+#> "wraps around" to the beginning of the next year, if needed: for example, 
+#> inputting 365 and a non-leap year will return (365, 1, 2, 3, 4, 5, 6). 
+
+get_window <- function(day, year){
+  if(366-day >= 7){
+    window <- seq(day, day+7)
+  }else if(day != 366){
+    x <- seq(day, 365)
+    y <- seq(1, 7-length(x))
+    window <- c(x, y)
+  }else{
+    window <- c(366, seq(1, 6))
+  }
+  return(window)
+}
+
+# designed to be iterated over day
+df_to_slide_mat <- function(df, day){
+  window <- get_window(day)
+  temp <- dplyr::filter(df, day %in% window) |>
+          dplyr::ungroup() |>
+          dplyr::group_by(long_bin, lat_bin, year) |>
+          dplyr::summarize(avg_obs_freq = mean(obs_freq, na.rm = TRUE)) |>
+          dplyr::ungroup() |>
+          tidyr::complete(tidyr::nesting(year),
+                          long_bin = 1:200,
+                          lat_bin = 1:200) |>
+          dplyr::arrange(year, lat_bin, long_bin)
+    arr <- array(temp$avg_obs_freq, dim = c(200, 200, length(unique(df$year))))
+    out <- apply(X = arr, MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
+    return(out)
+}
+
 # Smoothing Functions ==========================================================
 
 #> DESCRIPTION: Smooth a matrix of data. For a cell x, the new "smoothed" value
