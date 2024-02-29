@@ -104,16 +104,22 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
 #> black if the observation frequency is ABOVE that value and white if
 #> the observation frequency is BELOW the value.
 
-cutoff_plot <- function(data_in, cutoff, title){
+cutoff_plot <- function(data_in, cutoff, title, log = FALSE, epsilon = NULL){
   legend_lab <- paste0('OF over ', title)
-  p <- data_in |> dplyr::mutate(over = dplyr::case_when(obs_freq < cutoff ~ 'No',
+  if(log == TRUE){
+    temp <- data_in |> dplyr::mutate(obs_freq = log10(obs_freq + epsilon))
+  }else{
+    temp <- data_in
+  }
+  p <- temp|> dplyr::mutate(over = dplyr::case_when(obs_freq < cutoff ~ 'No',
                                                         obs_freq >= cutoff ~ 'Yes'),
                                 over = ordered(over, levels = c('No', 'Yes'))) |>
     ggplot2::ggplot(ggplot2::aes(x = long_bin, y = lat_bin, fill = over))+
     ggplot2::geom_raster()+
     ggplot2::theme_bw()+
     ggplot2::theme(panel.background = ggplot2::element_rect(fill = '#555555'),
-                   legend.key = ggplot2::element_rect(color = "black"))+
+                   legend.key = ggplot2::element_rect(color = "black"),
+                   legend.position = 'bottom')+
     ggplot2::scale_fill_manual(values = c('white', 'black'))+
     ggplot2::labs(fill = legend_lab)
   return(p)

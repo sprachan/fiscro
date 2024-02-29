@@ -72,3 +72,12 @@ purrr::map(names, \(x) map_uncompared(avg_df,
                                       year_mon = FALSE,
                                       over = x))
 dev.off()
+
+n <- paste0(opt$s, 'slide_cutoffs.pdf')
+pdf(file = file.path(fp, n))
+purrr::map(1:5, \(x) cutoff_plot(data_in = dplyr::filter(avg_df, day == names[x]),
+                                   cutoff = -1.5,
+                                   title = '-1.5',
+                                   log = TRUE,
+                                   epsilon = 1e-3))
+dev.off()
