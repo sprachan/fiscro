@@ -29,7 +29,6 @@ opt = parse_args(opt_parser);
 species <- opt$s
 
 # Load and Wrangle Data ========================================================
-# testing purposes:
 load('./processed_data/subsample.RData')
 
 daily <- subsample |> filter(species_code == opt$s,

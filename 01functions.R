@@ -145,6 +145,7 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, year_mon = TRUE
          ggplot2::geom_raster()+
          viridis::scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
          ggplot2::theme_bw()+
+         ggplot2::theme(legend.position = 'bottom')+
          ggplot2::labs(fill = paste0('log(OF+', epsilon, ')'),
                        title = over)
   }
