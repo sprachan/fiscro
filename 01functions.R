@@ -121,7 +121,8 @@ cutoff_plot <- function(data_in, cutoff, title, log = FALSE, epsilon = NULL){
                    legend.key = ggplot2::element_rect(color = "black"),
                    legend.position = 'bottom')+
     ggplot2::scale_fill_manual(values = c('black', 'white'))+
-    ggplot2::labs(fill = legend_lab)
+    ggplot2::labs(fill = legend_lab,
+                  title = title)
   return(p)
 }
 
