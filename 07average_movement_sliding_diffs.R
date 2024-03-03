@@ -78,7 +78,7 @@ diff_df <- mats_to_vecdf(diffs, enf_name = 'comparison', enf_value = 'diff') |>
                          lat_bin = rep(rep(1:200, times = 200), 364))
 
 
-n <- paste0(opt$s, 'slide_diffs.pdf')
+n <- paste0(opt$s, '_slide_diffs.pdf')
 pdf(file = file.path(fp, n))
 purrr::map(1:364, \(x) map_compared(diff_df,
                                     use_facets = FALSE,
