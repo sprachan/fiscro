@@ -174,22 +174,36 @@ hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
 
 #> DESCRIPTION: Given a dataframe of differences in observation frequencies with 
 #> associated long and lat bins, make a ggplot object for mapping.
-map_compared <- function(data_in, nrow = 3, ncol = 4){
-  p <- ggplot2::ggplot(data_in, 
-                       ggplot2::aes(x = long_bin, 
-                                    y = lat_bin,
-                                    fill = transform_diff))+
-    ggplot2::geom_raster()+
-    ggforce::facet_wrap_paginate(facets = ggplot2::vars(comparison),
-                                 nrow = nrow,
-                                 ncol = ncol)+
-    ggplot2::scale_fill_distiller(palette = 'RdBu', 
-                                  direction = -1,
-                                  na.value = '#cccccc')+
-    ggplot2::theme_bw()+
-    ggplot2::theme(legend.direction = 'horizontal',
-          legend.position = 'bottom')+
-    ggplot2::labs(fill = ' sign sqrt-transformed diff')
+map_compared <- function(data_in, use_facets = TRUE, nrow = 3, ncol = 4, over = ''){
+  if(use_facets == TRUE){
+    p <- ggplot2::ggplot(data_in, 
+                         ggplot2::aes(x = long_bin, 
+                                      y = lat_bin,
+                                      fill = transform_diff))+
+      ggplot2::geom_raster()+
+      ggforce::facet_wrap_paginate(facets = ggplot2::vars(comparison),
+                                   nrow = nrow,
+                                   ncol = ncol)+
+      ggplot2::scale_fill_distiller(palette = 'RdBu', 
+                                    direction = -1,
+                                    na.value = '#cccccc')+
+      ggplot2::theme_bw()+
+      ggplot2::theme(legend.direction = 'horizontal',
+                     legend.position = 'bottom')+
+      ggplot2::labs(fill = ' sign sqrt-transformed diff')
+  }else{
+    p <- dplyr::filter(data_in, comparison == over) |>
+         ggplot2::ggplot(ggplot2::aes(x = long_bin, y = lat_bin, fill = diff))+
+         ggplot2::geom_raster()+
+         ggplot2::scale_fill_distiller(palette = 'RdBu',
+                                       direction = -1,
+                                       na.value = '#cccccc')+
+         ggplot2::theme_bw()+
+         ggplot2::theme(legend.direction = 'horizontal',
+                        legend.position = 'bottom')+
+         ggplot2::labs(title = over)
+  }
+
   
   return(p)
 }
