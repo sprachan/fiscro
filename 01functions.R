@@ -105,7 +105,7 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
 #> the observation frequency is BELOW the value.
 
 cutoff_plot <- function(data_in, cutoff, title, log = FALSE, epsilon = NULL){
-  legend_lab <- paste0('OF over ', title)
+  legend_lab <- paste0('OF over ', cutoff)
   if(log == TRUE){
     temp <- data_in |> dplyr::mutate(obs_freq = log10(obs_freq + epsilon))
   }else{
