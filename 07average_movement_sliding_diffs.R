@@ -65,7 +65,7 @@ comparison <- rep('', 364)
 
 # this will be slow -- maybe try to figure out a faster way later
 for(i in 1:364){
-  diffs[[i]] <- geom_smooth(avg_mats[[i+1]]+avg_mats[[i]]) 
+  diffs[[i]] <- geom_smooth(avg_mats[[i+1]]-avg_mats[[i]]) 
   comparison[i] <- paste0(names(avg_mats)[i+1], '_', names(avg_mats[i]))
 }
 diffs <- purrr::set_names(diffs, comparison)
