@@ -198,7 +198,8 @@ map_compared <- function(data_in, use_facets = TRUE, nrow = 3, ncol = 4, over = 
          ggplot2::geom_raster()+
          ggplot2::scale_fill_distiller(palette = 'RdBu',
                                        direction = -1,
-                                       na.value = '#cccccc')+
+                                       na.value = '#cccccc',
+                                       limits = c(-1, 1))+
          ggplot2::theme_bw()+
          ggplot2::theme(legend.direction = 'horizontal',
                         legend.position = 'bottom')+
