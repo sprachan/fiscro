@@ -75,7 +75,12 @@ diffs <- purrr::set_names(diffs, comparison)
 diff_df <- mats_to_vecdf(diffs, enf_name = 'comparison', enf_value = 'diff') |>
            tidyr::unnest_longer(diff) |>
            dplyr::mutate(long_bin = rep(rep(1:200, each = 200), 364),
-                         lat_bin = rep(rep(1:200, times = 200), 364))
+                         lat_bin = rep(rep(1:200, times = 200), 364),
+                         transform_diff = dplyr::case_when(is.na(diff) ~ NA,
+                                                           is.nan(diff) ~ NA,
+                                                           diff < 0 ~ -sqrt(abs(diff)),
+                                                           diff == 0 ~ 0,
+                                                           diff > 0 ~ sqrt(diff)))
 
 
 n <- paste0(opt$s, '_slide_diffs.pdf')

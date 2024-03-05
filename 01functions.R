@@ -194,7 +194,9 @@ map_compared <- function(data_in, use_facets = TRUE, nrow = 3, ncol = 4, over = 
       ggplot2::labs(fill = ' sign sqrt-transformed diff')
   }else{
     p <- dplyr::filter(data_in, comparison == over) |>
-         ggplot2::ggplot(ggplot2::aes(x = long_bin, y = lat_bin, fill = diff))+
+         ggplot2::ggplot(ggplot2::aes(x = long_bin, 
+                                      y = lat_bin, 
+                                      fill = transform_diff))+
          ggplot2::geom_raster()+
          ggplot2::scale_fill_distiller(palette = 'RdBu',
                                        direction = -1,
