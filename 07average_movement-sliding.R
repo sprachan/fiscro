@@ -65,13 +65,13 @@ avg_df <- mats_to_vecdf(avg_mats, enf_name = 'day', enf_value = 'obs_freq') |>
           dplyr::mutate(long_bin = rep(rep(1:200, each = 200), 365),
                         lat_bin = rep(rep(1:200, times = 200), 365))
 
-# n <- paste0(opt$s, '_slide.pdf')
-# pdf(file = file.path(fp, n))
-# purrr::map(names, \(x) map_uncompared(avg_df, 
-#                                       epsilon = 1e-3, 
-#                                       year_mon = FALSE,
-#                                       over = x))
-# dev.off()
+n <- paste0(opt$s, '_slide.pdf')
+pdf(file = file.path(fp, n))
+purrr::map(names, \(x) map_uncompared(avg_df,
+                                      epsilon = 1e-3,
+                                      year_mon = FALSE,
+                                      over = x))
+dev.off()
 
 n <- paste0(opt$s, 'slide_cutoffs.pdf')
 pdf(file = file.path(fp, n))

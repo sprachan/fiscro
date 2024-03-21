@@ -122,7 +122,9 @@ cutoff_plot <- function(data_in, cutoff, title, log = FALSE, epsilon = NULL){
                    legend.position = 'bottom')+
     ggplot2::scale_fill_manual(values = c('black', 'white'))+
     ggplot2::labs(fill = legend_lab,
-                  title = title)
+                  title = title,
+                  x = 'Longitude',
+                  y = 'Latitude')
   return(p)
 }
 
@@ -143,7 +145,9 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, year_mon = TRUE
       ggplot2::theme_bw()+
       ggplot2::theme(legend.direction = 'horizontal',
                      legend.position = 'bottom')+
-      ggplot2::labs(fill = paste0('log(OF+', epsilon, ')'))
+      ggplot2::labs(fill = paste0('log10(OF+', epsilon, ')'),
+                    x = 'Longitude',
+                    y = 'Latitude')
   }else{
     p <- dplyr::filter(data_in, day == over) |>
          ggplot2::ggplot(ggplot2::aes(x = long_bin,
@@ -153,8 +157,10 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, year_mon = TRUE
          viridis::scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
          ggplot2::theme_bw()+
          ggplot2::theme(legend.position = 'bottom')+
-         ggplot2::labs(fill = paste0('log(OF+', epsilon, ')'),
-                       title = over)
+         ggplot2::labs(fill = paste0('log10(OF+', epsilon, ')'),
+                       title = over,
+                       x = 'Longitude',
+                       y = 'Latitude')
   }
   return(p)
 }
@@ -193,6 +199,7 @@ map_compared <- function(data_in, use_facets = TRUE, nrow = 3, ncol = 4, over = 
                      legend.position = 'bottom')+
       ggplot2::labs(fill = ' sign sqrt-transformed diff')
   }else{
+    title_clean <- paste(substr(over, 1, 6), 'vs', substr(over, 8, 13))
     p <- dplyr::filter(data_in, comparison == over) |>
          ggplot2::ggplot(ggplot2::aes(x = long_bin, 
                                       y = lat_bin, 
@@ -205,7 +212,10 @@ map_compared <- function(data_in, use_facets = TRUE, nrow = 3, ncol = 4, over = 
          ggplot2::theme_bw()+
          ggplot2::theme(legend.direction = 'horizontal',
                         legend.position = 'bottom')+
-         ggplot2::labs(title = over)
+         ggplot2::labs(title = title_clean,
+                       x = 'Longitude',
+                       y = 'Latitude',
+                       fill = 'Square root transformed difference')
   }
 
   
