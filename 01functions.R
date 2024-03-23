@@ -135,7 +135,7 @@ cutoff_plot <- function(data_in, cutoff, title, log = FALSE, epsilon = NULL){
 #> values.
 
 map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, plot_facet = TRUE, keep = NULL, over = ''){
-  if(year_mon == TRUE){
+  if(plot_facet == TRUE){
     p <- dplyr::arrange(data_in, year_mon) |>
       ggplot(aes(x = long_bin, 
                  y = lat_bin,

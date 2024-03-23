@@ -28,11 +28,12 @@ species <- opt$s
 
 # Load and Wrangle Data ========================================================
 ym_obs_freq <- load_data()
-names <- ym_obs_freq$year_mon
+smoothed_df <- df_smoother(ym_obs_freq, df_type = 'raw', smooth_type = 'geom')
+names <- unique(smoothed_df$year_mon)
 # Plot =========================================================================
 n <- paste0(opt$s, '_year_geom.pdf')
 pdf(file = file.path(fp, n))
-purrr::map(names, \(x) map_uncompared(avg_df,
+purrr::map(names, \(x) map_uncompared(smoothed_df,
                                       epsilon = 1e-3,
                                       plot_facet = FALSE,
                                       keep = ym_obs_freq$year_mon == x,
