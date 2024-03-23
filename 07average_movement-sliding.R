@@ -69,7 +69,8 @@ n <- paste0(opt$s, '_slide.pdf')
 pdf(file = file.path(fp, n))
 purrr::map(names, \(x) map_uncompared(avg_df,
                                       epsilon = 1e-3,
-                                      year_mon = FALSE,
+                                      plot_facet = FALSE,
+                                      keep = which(avg_df$day == x),
                                       over = x))
 dev.off()
 

@@ -130,8 +130,11 @@ cutoff_plot <- function(data_in, cutoff, title, log = FALSE, epsilon = NULL){
 
 #> DESCRIPTION: Given a dataframe of observation frequencies with 
 #> associated long and lat bins, make a ggplot object for mapping.
+#> if plot_facet is FALSE, each plot goes on its own page in the pdf.
+#> In this case, each page reflects data given by keep, a vector of boolean
+#> values.
 
-map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, year_mon = TRUE, over = ''){
+map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, plot_facet = TRUE, keep = NULL, over = ''){
   if(year_mon == TRUE){
     p <- dplyr::arrange(data_in, year_mon) |>
       ggplot(aes(x = long_bin, 
@@ -149,7 +152,7 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, year_mon = TRUE
                     x = 'Longitude',
                     y = 'Latitude')
   }else{
-    p <- dplyr::filter(data_in, day == over) |>
+    p <- data_in[keep,] |>
          ggplot2::ggplot(ggplot2::aes(x = long_bin,
                                      y = lat_bin,
                                      fill = log10(obs_freq+epsilon)))+
