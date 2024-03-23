@@ -34,7 +34,7 @@ n <- paste0(opt$s, '_year_geom.pdf')
 pdf(file = file.path(fp, n))
 purrr::map(names, \(x) map_uncompared(avg_df,
                                       epsilon = 1e-3,
-                                      year_mon = FALSE,
+                                      plot_facet = FALSE,
                                       keep = year_mon$yearmon == x,
                                       over = x))
 dev.off()
