@@ -36,7 +36,7 @@ pdf(file = file.path(fp, n))
 purrr::map(names, \(x) map_uncompared(smoothed_df,
                                       epsilon = 1e-3,
                                       plot_facet = FALSE,
-                                      keep = ym_obs_freq$year_mon == x,
+                                      keep = smoothed_df$year_mon == x,
                                       over = x))
 dev.off()
 
