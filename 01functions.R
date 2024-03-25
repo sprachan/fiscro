@@ -20,12 +20,12 @@ load_data <- function(fp = './processed_data/subsample.RData',
                            n_lists = dplyr::n()) |>
            dplyr::mutate(obs_freq = as.numeric(obs_freq))
   }else{
-    out <- dplyr::mutate(subsample,
-                         year_mon = zoo::as.yearmon(observation_date)) |>
+    out <- subsample |>
            dplyr::group_by(observation_date, long_bin, lat_bin) |>
            dplyr::summarize(obs_freq = sum(species_observed)/dplyr::n(),
                             n_lists = dplyr::n()) |>
-           dplyr::mutate(obs_freq = as.numeric(obs_freq))
+           dplyr::mutate(obs_freq = as.numeric(obs_freq),
+                         year_mon = zoo::as.yearmon(observation_date))
   }
   print('summarized')
   return(out)
@@ -163,8 +163,8 @@ map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, plot_facet = TR
   }else{
     p <- data_in[keep,] |>
          ggplot2::ggplot(ggplot2::aes(x = long_bin,
-                                     y = lat_bin,
-                                     fill = log10(obs_freq+epsilon)))+
+                                      y = lat_bin,
+                                      fill = log10(obs_freq+epsilon)))+
          ggplot2::geom_raster()+
          viridis::scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
          ggplot2::theme_bw()+
@@ -347,7 +347,7 @@ mats_to_vecdf <- function(matrix_list, enf_name, enf_value){
 #> "wraps around" to the beginning of the next year, if needed: for example, 
 #> inputting 365 and a non-leap year will return (365, 1, 2, 3, 4, 5, 6). 
 
-get_window <- function(day, year){
+get_window <- function(day){
   if(366-day >= 7){
     window <- seq(day, day+7)
   }else if(day != 366){
@@ -361,20 +361,33 @@ get_window <- function(day, year){
 }
 
 # designed to be iterated over day
-df_to_slide_mat <- function(df, day){
+df_to_slide_mat <- function(df, day = NULL, year = NULL){
+  stopifnot(!is.null(day))
   window <- get_window(day)
-  temp <- dplyr::filter(df, day %in% window) |>
-          dplyr::ungroup() |>
-          dplyr::group_by(long_bin, lat_bin, year) |>
-          dplyr::summarize(avg_obs_freq = mean(obs_freq, na.rm = TRUE)) |>
-          dplyr::ungroup() |>
-          tidyr::complete(tidyr::nesting(year),
-                          long_bin = 1:200,
-                          lat_bin = 1:200) |>
-          dplyr::arrange(year, lat_bin, long_bin)
+  if(is.null(year)){
+    temp <- dplyr::filter(df, day %in% window) |>
+      dplyr::ungroup() |>
+      dplyr::group_by(long_bin, lat_bin, year) |>
+      dplyr::summarize(avg_obs_freq = mean(obs_freq, na.rm = TRUE)) |>
+      dplyr::ungroup() |>
+      tidyr::complete(tidyr::nesting(year),
+                      long_bin = 1:200,
+                      lat_bin = 1:200) |>
+      dplyr::arrange(year, lat_bin, long_bin)
     arr <- array(temp$avg_obs_freq, dim = c(200, 200, length(unique(df$year))))
-    out <- apply(X = arr, MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
-    return(out)
+    out <- apply(X = arr, MARGIN = c(1, 2), FUN = mean, na.rm = TRUE)
+  }else{
+    temp <- dplyr::filter(df, year == year) |>
+            dplyr::ungroup() |>
+            dplyr::group_by(long_bin, lat_bin, day) |>
+            dplyr::summarize(avg_obs_freq = mean(obs_freq, na.rm = TRUE)) |>
+            dplyr::ungroup() |>
+            tidyr::complete(long_bin = 1:200,
+                            lat_bin = 1:200) |>
+            dplyr::arrange(lat_bin, long_bin)
+    out <- matrix(temp$avg_obs_freq, nrow = 200, ncol = 200)
+  }
+  return(out)
 }
 
 # Smoothing Functions ==========================================================
