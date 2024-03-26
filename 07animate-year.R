@@ -31,7 +31,7 @@ species <- opt$s
 # Load and Wrangle Data ========================================================
 ym_obs_freq <- load_data(keep_date = TRUE)
 dates <- seq(lubridate::make_date(2010, 1, 1), 
-             lubridate::make_date(2023, 12, 31),
+             lubridate::make_date(2022, 12, 31),
              by = 'day')
 
 # get rid of leap days -- I use their data but don't make separate maps for them
@@ -40,11 +40,11 @@ dates <- dates[-which(lubridate::month(dates) == 2 & lubridate::day(dates) == 29
 
 ym_obs_freq$day <- lubridate::yday(ym_obs_freq$observation_date)
 ym_obs_freq$year <- lubridate::year(ym_obs_freq$observation_date)
-years <- 2010:2023
-store <- array(NA, dim = c(365*14, 200, 200))
+years <- 2010:2022
+store <- array(NA, dim = c(365*13, 200, 200))
 dimnames(store) <- list(date = dates, NULL, NULL)
 
-for(year_ind in 1:14){
+for(year_ind in 1:13){
   for(day in 1:365){
     window <- get_window(day)
     temp_df <- dplyr::filter(ym_obs_freq, year == years[year_ind], day %in% window) |>
@@ -76,7 +76,7 @@ pdf(file = file.path(fp, n))
                                               fill = obs_freq))+
                               scale_fill_viridis(option = 'inferno', 
                                                  na.value = '#cccccc',
-                                                 limits = c(-3, 1))+
+                                                 limits = c(-3, 0))+
                               theme_bw()+
                               theme(legend.direction = 'horizontal',
                                     legend.position = 'bottom')+
@@ -84,7 +84,6 @@ pdf(file = file.path(fp, n))
                                             x = 'Longitude',
                                             y = 'Latitude',
                                             title = dates[x])
-                         print(p)
                         }
              ) 
 dev.off()
