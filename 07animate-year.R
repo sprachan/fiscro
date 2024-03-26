@@ -66,7 +66,7 @@ for(year_ind in 1:13){
 # Plot =========================================================================
 n <- paste0(opt$s, '_year_geom.pdf')
 pdf(file = file.path(fp, n))
-  purrr::map(1:5110, 
+  purrr::map(1:4745, 
              function(x){temp <- data.frame(long_bin = rep(1:200, each = 200),
                                             lat_bin = rep(1:200, times = 200),
                                             obs_freq = as.vector(t(store[x,,])))
