@@ -128,8 +128,8 @@ rm(bioclim_simple, list_rast, occ_rast, occ_spatial, opt, vars)
 m0 <- rstan::stan_model('M0.stan')
 occ_fit = rstan::sampling(m0, 
                           model_obj, 
-                          iter = 5000, 
-                          chains = 4,
+                          iter = 10000, 
+                          chains = 1,
                           sample_file = output_dir,
                           diagnostic_file = output_dir,
                           verbose = TRUE)
