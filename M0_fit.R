@@ -31,7 +31,7 @@ species <- opt$s
 
 ## file paths ------
 env_dir <- file.path('.', 'processed_data', 'env_vars')
-output_dir <- file.path('~', 'eBird_projects', 'model_outputs')
+output_dir <- file.path('~', 'eBird_project', 'model_outputs', 'm0')
 # Load data ====================================================================
 ## occurrence data ------
 load('./processed_data/subsample.RData')
@@ -131,7 +131,7 @@ occ_fit = rstan::sampling(m0,
                           iter = 10000, 
                           chains = 1,
                           sample_file = output_dir,
-                          diagnostic_file = output_dir,
+                          diagnostic_file = ourput_dir,
                           verbose = TRUE)
 str(occ_fit)
 
