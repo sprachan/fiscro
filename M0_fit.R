@@ -131,7 +131,7 @@ occ_fit = rstan::sampling(m0,
                           iter = 10000, 
                           chains = 1,
                           sample_file = output_dir,
-                          diagnostic_file = ourput_dir,
+                          diagnostic_file = output_dir,
                           verbose = TRUE)
 str(occ_fit)
 
