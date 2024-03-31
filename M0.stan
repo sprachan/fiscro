@@ -44,11 +44,11 @@ model {
   
 }
 
-generated quantities {
-  // p's
-  real p[N];
-  for(i in 1:N){
-    p[i] = inv_logit(coeff_ts*ts[i]+inter);
-  }
-}
+// generated quantities {
+//   // p's
+//   real p[N];
+//   for(i in 1:N){
+//     p[i] = inv_logit(coeff_ts*ts[i]+inter);
+//   }
+// }
 
