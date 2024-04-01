@@ -189,12 +189,12 @@ model <- rstan::stan_model('M1B.stan')
 occ_fit = rstan::sampling(model, 
                           model_obj, 
                           iter = 5000, 
-                          chains = 4,
+                          chains = 2,
                           #sample_file = file.path(output_dir, 'sample.csv'),
                           #diagnostic_file = file.path(output_dir, 'diagnostics.csv'),
                           verbose = TRUE)
 str(occ_fit)
-occ_fit$save_object(file = file.path('~', 'eBird_project', 'model_outputs', paste0(species, 'M1B_fit.RDS')))
+saveRDS(occ_fit, file = file.path('~', 'eBird_project', 'model_outputs', paste0(species, '_M1B_fit.RDS')))
 
 
 
