@@ -180,7 +180,7 @@ model_obj <- list(lc = lc,
                   N = length(vars$occ))
 
 # free as much RAM as possible
-rm(bioclim_simple, list_rast, occ_rast, occ_spatial, opt, vars)
+rm(landcover_simple, list_rast, occ_rast, occ_spatial, opt, vars)
 
 # Run Model ====================================================================
 model <- rstan::stan_model('M1B.stan')
