@@ -177,7 +177,9 @@ lc <- matrix(c(vars$water,
 model_obj <- list(lc = lc,
                   occ = vars$occ+1, # stan doesn't like 0's in binomial
                   checklists = vars$checklists+1,
-                  N = length(vars$occ))
+                  N = length(vars$occ),
+                  K = length(unique(vars$lc)))
+str(model_obj)
 
 # free as much RAM as possible
 rm(landcover_simple, list_rast, occ_rast, occ_spatial, opt, vars)
