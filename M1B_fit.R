@@ -188,8 +188,8 @@ occ_fit = rstan::sampling(model,
                           model_obj, 
                           iter = 10000, 
                           chains = 1,
-                          sample_file = output_dir,
-                          diagnostic_file = output_dir,
+                          sample_file = file.path(output_dir, 'sample.csv'),
+                          diagnostic_file = file.path(output_dir, 'diagnostics.csv'),
                           verbose = TRUE)
 str(occ_fit)
 
