@@ -32,7 +32,7 @@ species <- opt$s
 
 ## file paths ------
 env_dir <- file.path('.', 'processed_data', 'env_vars')
-output_dir <- file.path('~', 'eBird_project', 'model_outputs', 'm0_tdr')
+output_dir <- '.'
 # Load data ====================================================================
 ## occurrence data ------
 load('./processed_data/subsample.RData')
@@ -130,12 +130,12 @@ m0_tdr <- rstan::stan_model('M0_tdr.stan')
 m0_tdr
 occ_fit = rstan::sampling(m0_tdr, 
                           model_obj, 
-                          iter = 10000, 
-                          chains = 1,
-                          sample_file = file.path(output_dir, 'sample.csv'),
-                          diagnostic_file = file.path(output_dir, 'diagnostics.csv'),
+                          iter = 5000, 
+                          chains = 4,
+                          #sample_file = file.path(output_dir, 'sample.csv'),
+                          #diagnostic_file = file.path(output_dir, 'diagnostics.csv'),
                           verbose = TRUE)
 str(occ_fit)
-
+occ_fit$save_object(file = file.path('~', 'eBird_project', 'model_outputs', 'M0_tdr_fit.RDS'))
 
 

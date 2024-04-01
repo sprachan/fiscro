@@ -186,13 +186,13 @@ rm(landcover_simple, list_rast, occ_rast, occ_spatial, opt, vars)
 model <- rstan::stan_model('M1B.stan')
 occ_fit = rstan::sampling(model, 
                           model_obj, 
-                          iter = 10000, 
-                          chains = 1,
-                          sample_file = file.path(output_dir, 'sample.csv'),
-                          diagnostic_file = file.path(output_dir, 'diagnostics.csv'),
+                          iter = 5000, 
+                          chains = 4,
+                          #sample_file = file.path(output_dir, 'sample.csv'),
+                          #diagnostic_file = file.path(output_dir, 'diagnostics.csv'),
                           verbose = TRUE)
 str(occ_fit)
-
+occ_fit$save_object(file = file.path('~', 'eBird_project', 'model_outputs', 'M1B_fit.RDS'))
 
 
 
