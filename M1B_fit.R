@@ -194,7 +194,7 @@ occ_fit = rstan::sampling(model,
                           #diagnostic_file = file.path(output_dir, 'diagnostics.csv'),
                           verbose = TRUE)
 str(occ_fit)
-saveRDS(occ_fit, file = file.path('~', 'eBird_project', 'model_outputs', paste0(species, '_M1B_fit.RDS')))
+saveRDS(occ_fit, file = file.path('~', 'eBird_project', 'model_outputs', paste0(species, '_M1B_noint.RDS')))
 
 
 

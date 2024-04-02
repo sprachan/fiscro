@@ -21,7 +21,7 @@ data {
 
 // The parameters accepted by the model. 
 parameters {
-  real inter; // intercept
+  //real inter; // intercept
   vector[K] coeffs; // coefficients
   // real b_water;
   // real b_developed;
@@ -38,7 +38,6 @@ parameters {
  categorical logistic regression.*/
 model {
   // priors
-  inter ~ cauchy(0.3, 9);
   to_vector(coeffs) ~ cauchy(0, 2.5); // Gelman's weakly informative prior
   // but want to make a few of these a little more informative
   coeffs[1] ~ cauchy(2, 3); // I think water coeff is positive, but making more diffuse also
@@ -46,7 +45,7 @@ model {
   coeffs[4] ~ cauchy(0.5, 3); // negative forest
   
   // run a logistic regression to generate the p that controls the occurrence data
-  occ ~ binomial_logit(checklists, lc*coeffs+inter);
+  occ ~ binomial_logit(checklists, lc*coeffs);
   
 }
 
