@@ -189,7 +189,9 @@ model <- rstan::stan_model('M1B.stan')
 occ_fit = rstan::sampling(model, 
                           model_obj, 
                           iter = 5000, 
+                          warmup = 1000,
                           chains = 2,
+                          cores = 2,
                           #sample_file = file.path(output_dir, 'sample.csv'),
                           #diagnostic_file = file.path(output_dir, 'diagnostics.csv'),
                           verbose = TRUE)
