@@ -170,7 +170,7 @@ lc <- matrix(c(vars$water,
                vars$shrub,
                vars$grassland,
                vars$planted_cultivated,
-               vars$developed), ncol = 8)
+               vars$wetlands), ncol = 8)
 
 
 # make model object. 
