@@ -8,4 +8,4 @@ occ_fit = rstan::sampling(model,
                           cores = 3,
                           verbose = TRUE)
 str(occ_fit)
-saveRDS(occ_fit, file = file.path('~', 'eBird_project', 'model_outputs', paste0(species, '_junfit.RDS')))
+saveRDS(occ_fit, file = file.path('~', 'eBird_project', 'model_outputs', 'fiscro_junfit.RDS'))
