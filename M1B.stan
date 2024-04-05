@@ -21,7 +21,7 @@ data {
 
 // The parameters accepted by the model. 
 parameters {
-  //real inter; // intercept
+  real inter; // intercept
   vector[K] coeffs; // coefficients
   // real b_water;
   // real b_developed;
@@ -45,7 +45,7 @@ model {
   coeffs[4] ~ cauchy(0.5, 3); // negative forest
   
   // run a logistic regression to generate the p that controls the occurrence data
-  occ ~ binomial_logit(checklists, lc*coeffs);
+  occ ~ binomial_logit(checklists, lc*coeffs+inter);
   
 }
 
