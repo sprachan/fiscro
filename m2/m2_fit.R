@@ -1,6 +1,6 @@
 library(optparse)
 option_list <- list(make_option(c('-s', '--species', 
-                                  action = store,
+                                  action = 'store',
                                   type = 'character',
                                   help = '6 letter species code')))
 
