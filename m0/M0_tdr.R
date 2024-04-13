@@ -15,7 +15,7 @@
 ## packages ----
 library(optparse)
 ## functions ----
-source('01functions.R')
+# source('01functions.R')
 ## get options ----
 option_list <- list(make_option(c('-s', '--speciesCode'),
                                 type = 'character',

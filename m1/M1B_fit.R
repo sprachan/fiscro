@@ -113,6 +113,10 @@ list_rast <- terra::rasterize(occ_spatial,
                                           crs = terra::crs(landcover_simple), 
                                           extent = terra::ext(landcover_simple)))
 
+terra::plot(terra::aggregate(occ_rast/list_rast, fact = 7, fun = 'mean', na.rm = TRUE), 
+            background = 'darkgrey', 
+            col = viridis::viridis(100, option = 'inferno'))
+
 # Prep data for STAN ===========================================================
 # make all raster data into vectors with names that correspond to STAN file
 
