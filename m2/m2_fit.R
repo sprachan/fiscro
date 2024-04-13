@@ -7,11 +7,11 @@ option_list <- list(make_option(c('-s', '--species',
 opt <- parse_args(OptionParser(option_list = option_list))
 
 if(opt$s == 'fiscro'){
-  model_df <- readRDS('/m2/m2_prepped_data.RDS')$fiscro
+  model_df <- readRDS('m2/m2_prepped_data.RDS')$fiscro
 }else if(opt$s == 'ribgul'){
-  model_df <- readRDS('/m2/m2_prepped_data.RDS')$ribgul
+  model_df <- readRDS('m2/m2_prepped_data.RDS')$ribgul
 }else if(opt$s == 'amerob'){
-  model_df <- readRDS('.m2/m2_prepped_data.RDS')$amerob
+  model_df <- readRDS('m2/m2_prepped_data.RDS')$amerob
 }else{
   stop('have not created processed data for the requested species')
 }
