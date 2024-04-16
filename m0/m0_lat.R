@@ -1,11 +1,11 @@
 library(terra)
 library(optparse)
 # LOAD DATA --------------------------------------------------------------------
-env_dir <- '../data/env_vars/prism'
+env_dir <- './processed_data/env_vars/prism'
 # load this as a raster template
 tmean <- terra::rast(list.files(env_dir, pattern = 'tmean', full.names = TRUE)[1])
 
-load('../data/subsample.RData')
+load('./processed_data/subsample.RData')
 
 
 
