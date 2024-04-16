@@ -62,3 +62,5 @@ fit = rstan::sampling(model,
                       chains = 3,
                       cores = 3,
                       verbose = TRUE)
+str(fit)
+saveRDS(fit, file = file.path('~', 'eBird_project', 'model_outputs', paste0(opt$s, '_m0_lat_fit.RDS')))
