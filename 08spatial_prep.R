@@ -14,11 +14,16 @@ state_bounds <- state_bounds[state_bounds$STUSPS %in% states]
 
 # environmental data ===========================================================
 # bioclimatic data
-bioclim_files <- list.files(path = env_dir, pattern = 'wc2.1', full.names = TRUE)
-bioclim <- terra::rast(bioclim_files)
+# bioclim_files <- list.files(path = env_dir, pattern = 'wc2.1', full.names = TRUE)
+bioclim <- terra::rast('../data/env_vars/bioclim_final.tif')
 
 # land cover data
-land_cover <- terra::rast(file.path(env_dir, 'nlcd_2021_lc.img'))
+land_cover_files <- list.files(path = file.path(env_dir, 'nlcd'), 
+                               pattern = '.img', 
+                               full.names = TRUE)
+land_cover <- terra::rast(land_cover_files)
+  
+#terra::rast(file.path(env_dir, 'nlcd_2021_lc.img'))
 
 # match land cover CRS by projecting -- faster to project the smaller data set 
 #> (land cover) than the larger one (bioclimatic data)
@@ -32,14 +37,21 @@ state_bounds_proj <- terra::project(state_bounds, terra::crs(land_cover_proj))
 
 # crop data roughly first
 land_cover_crop <- terra::crop(land_cover_proj, terra::ext(-85, -65, 35, 48))
-bioclim_crop <- terra::crop(bioclim, terra::ext(-85, -65, 35, 48))
+#bioclim_crop <- terra::crop(bioclim, terra::ext(-85, -65, 35, 48))
 
 # mask to the study region (faster than masking before cropping!)
-land_cover_final <- terra::mask(land_cover_crop, state_bounds_proj)
-bioclim_final <- terra::mask(bioclim_crop, state_bounds_proj)
+land_cover_masked <- terra::mask(land_cover_crop, state_bounds_proj)
+#bioclim_final <- terra::mask(bioclim_crop, state_bounds_proj)
 
+# now take the mode of these years
+mode_lc <- terra::modal(land_cover_masked)
+terra::coltab(mode_lc) <- terra::coltab(land_cover_masked)[[1]]
 # save the masked raster data
-terra::writeRaster(land_cover_final, 
-                   filename = file.path(env_dir, 'land_cover_final.tif'))
-terra::writeRaster(bioclim_final,
-                   filename = file.path(env_dir, 'bioclim_final.tif'))
+terra::writeRaster(mode_lc,
+                   filename = file.path(env_dir, 'land_cover_mode.tif'),
+                   overwrite = TRUE)
+
+# terra::writeRaster(land_cover_final, 
+#                    filename = file.path(env_dir, 'land_cover_final.tif'))
+# terra::writeRaster(bioclim_final,
+#                    filename = file.path(env_dir, 'bioclim_final.tif'))

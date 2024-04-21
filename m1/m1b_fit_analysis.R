@@ -27,7 +27,7 @@ ci <- coeff_df |> dplyr::group_by(lc_type) |>
                   dplyr::summarize(ci_high = quantile(coeff, 0.025),
                                    ci_low = quantile(coeff, 0.975))
 df <- dplyr::full_join(coeff_df, ci, by = dplyr::join_by(lc_type))
-
+ 
 ggplot(df, aes(x = coeff))+
   geom_histogram(color = '#000004FF', fill = '#BB3754FF', bins = 40)+
   geom_vline(aes(xintercept = ci_high))+
