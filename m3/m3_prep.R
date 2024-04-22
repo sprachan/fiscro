@@ -1,6 +1,6 @@
 # setup ========================================================================
 env_dir <- '../processed_data'
-source('01functions.R')
+source('../01functions.R')
 library(optparse)
 load('../processed_data/subsample.RData')
 subsample <- dplyr::select(subsample, 
