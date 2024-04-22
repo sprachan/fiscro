@@ -1,8 +1,8 @@
 # setup ========================================================================
-env_dir <- './processed_data'
+env_dir <- '../processed_data'
 source('01functions.R')
 library(optparse)
-load('./processed_data/subsample.RData')
+load('../processed_data/subsample.RData')
 subsample <- dplyr::select(subsample, 
                            checklist_id,
                            species_code, 
@@ -10,9 +10,11 @@ subsample <- dplyr::select(subsample,
                            observation_date,
                            latitude, 
                            longitude)
-
+print('subsample loaded')
 tmean_path <- file.path(env_dir, 'tmean_all.tif')
 precip_path <- file.path(env_dir, 'precip_all.tif')
+print('file paths set')
+
 # simplify modal NLCD map to 8 categories from 13 ==============================
 lc <- terra::rast(file.path(env_dir, 'land_cover_mode.tif'))
 classify_mat <- matrix(c(10, 19, 10,
@@ -26,17 +28,17 @@ classify_mat <- matrix(c(10, 19, 10,
                        ncol = 3, byrow = TRUE)
 
 simple <- terra::classify(lc, rcl = classify_mat)
-# colors from https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
-terra::coltab(simple) <- data.frame(value = c(10, 20, 30, 40, 50, 70, 80, 90),
-                                    col = c('#4f6c9e', 
-                                            '#DD3021',
-                                            '#B2AEA5',
-                                            '#336437',
-                                            '#CDBB89',
-                                            '#EDECCF',
-                                            '#DCD85B',
-                                            '#BFD5EB'))
-terra::plot(simple)
+# # colors from https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
+# terra::coltab(simple) <- data.frame(value = c(10, 20, 30, 40, 50, 70, 80, 90),
+#                                     col = c('#4f6c9e', 
+#                                             '#DD3021',
+#                                             '#B2AEA5',
+#                                             '#336437',
+#                                             '#CDBB89',
+#                                             '#EDECCF',
+#                                             '#DCD85B',
+#                                             '#BFD5EB'))
+print('Land cover is loaded')
 rm(lc)
 
 # ITERATE OVER DAYS ----
@@ -84,6 +86,7 @@ for(s in c('fiscro', 'ribgul', 'amerob')){
   }
   names(spat_list) <- days
   saveRDS(spat_list, file = file.path(env_dir, paste0('m3_prep_', s, '.RDS')))
+  cat('Finished with species ', s)
 }
 
 
