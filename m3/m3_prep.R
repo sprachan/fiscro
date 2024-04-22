@@ -50,7 +50,7 @@ spat_list <- list()
 for(s in c('fiscro', 'ribgul', 'amerob')){
   temp <- dplyr::filter(subsample, species_code == s) |>
           dplyr::distinct()
-  for(i in 365){
+  for(i in 1:365){
     # get climate data for day i
     clim <- c(terra::rast(precip_path)[[i]], terra::rast(tmean_path)[[i]])
     names(clim) <- c('precip', 'tmean')
@@ -82,7 +82,7 @@ for(s in c('fiscro', 'ribgul', 'amerob')){
     
     # make this into a dataframe stored in spat_list
     spat_list[[i]] <- terra::as.data.frame(daily, xy = TRUE) |> na.omit()
-    remove(daily, list_layer, obs_layer, mean_layer, clim)
+    rm(daily, list_layer, obs_layer, mean_layer, clim)
   }
   names(spat_list) <- days
   saveRDS(spat_list, file = file.path(env_dir, paste0('m3_prep_', s, '.RDS')))
