@@ -1,28 +1,20 @@
 # setup ========================================================================
-env_dir <- '../data/env_vars'
+env_dir <- './processed_data'
 source('01functions.R')
 library(optparse)
+load('../data/subsample.RData')
+subsample <- dplyr::select(subsample, 
+                           checklist_id,
+                           species_code, 
+                           species_observed,
+                           observation_date,
+                           latitude, 
+                           longitude)
 
-# options ======================================================================
-option_list <- list(make_option(c('-s', '--speciesCode'),
-                                type = 'character',
-                                action = 'store',
-                                help = 'species for analysis'),
-                    make_option(c('-d', '--dayOfYear'),
-                                type = 'integer',
-                                action = 'store',
-                                help = 'integer day of year, 1-365'
-                                )
-                   )
-
-opt_parser = OptionParser(option_list = option_list);
-
-# make a list of the arguments passed via command line
-opt = parse_args(opt_parser);
-
-opt <- list(s = 'fiscro', d = 1) # for testing purposes
+tmean_path <- file.path(env_dir, 'tmean_all.tif')
+precip_path <- file.path(env_dir, 'precip_all.tif')
 # simplify modal NLCD map to 8 categories from 13 ==============================
-lc <- terra::rast('../data/env_vars/land_cover_mode.tif')
+lc <- terra::rast(file.path(env_dir, 'land_cover_mode.tif'))
 classify_mat <- matrix(c(10, 19, 10,
                          20, 29, 20,
                          30, 39, 30,
@@ -45,50 +37,72 @@ terra::coltab(simple) <- data.frame(value = c(10, 20, 30, 40, 50, 70, 80, 90),
                                             '#DCD85B',
                                             '#BFD5EB'))
 terra::plot(simple)
+rm(lc)
 
-# get temperature and precipitation data =======================================
+# ITERATE OVER DAYS ----
 days <- seq(as.Date('2010-01-01'), as.Date('2010-12-31'), by = 'day') |>
         substr(6, 10)
 
+temp <- NA
+spat_list <- list()
+for(s in c('fiscro', 'ribgul', 'amerob')){
+  temp <- dplyr::filter(subsample, species_code == s) |>
+          dplyr::distinct()
+  for(i in 365){
+    # get climate data for day i
+    clim <- c(terra::rast(precip_path)[[i]], terra::rast(tmean_path)[[i]])
+    names(clim) <- c('precip', 'tmean')
+    window <- get_window(i)
+    daily <- dplyr::filter(temp,
+                           lubridate::yday(observation_date) %in% window)
+    
+    # make this spatial
+    sp::coordinates(daily) <- ~longitude+latitude
+    daily <- terra::vect(daily)
+    
+    # make sure CRS and extent matches
+    terra::crs(daily) <- terra::crs(clim)
+  
+     # now get raster layers
+    list_layer <- terra::rasterize(daily, clim, 
+                                   field = 'species_observed', 
+                                   fun = length)
+    obs_layer <- terra::rasterize(daily, clim,
+                                  field = 'species_observed',
+                                  fun = sum, na.rm = TRUE)
+    
+    mean_layer <- obs_layer/list_layer
+    names(mean_layer) <- 'obs_freq'
+    daily <- c(list_layer, obs_layer) |>
+             c(mean_layer) |>
+             c(simple) |>
+             c(clim)
+    
+    # make this into a dataframe stored in spat_list
+    spat_list[[i]] <- terra::as.data.frame(daily, xy = TRUE) |> na.omit()
+    remove(daily, list_layer, obs_layer, mean_layer, clim)
+  }
+  names(spat_list) <- days
+  saveRDS(spat_list, file = file.path(env_dir, paste0('m3_prep_', s, '.RDS')))
+}
 
-# one layer will be temp, the other precip
-clim <- terra::rast(list.files(file.path(env_dir, 'prism'), 
-                              pattern = days[opt$d], 
-                              full.names = TRUE))
-names(clim) <- c('precip', 'tmean')
 
-# get sliding window average data ==============================================  
-load('../data/subsample.RData')
-window <- get_window(opt$d)
-daily <- subsample |> dplyr::filter(species_code == opt$s,
-                                    lubridate::yday(observation_date) %in% window) |>
-                      dplyr::select(longitude,
-                                    latitude,
-                                    species_code,
-                                    observation_count,
-                                    species_observed,
-                                    observation_date)
-rm(subsample)
-sp::coordinates(daily) <- ~longitude+latitude
-spat <- terra::vect(daily)
-terra::crs(spat) <- terra::crs(clim)
-
-list_layer <- terra::rasterize(spat, clim,
-                               field = 'species_observed',
-                               fun = length)
-obs_layer <- terra::rasterize(spat, clim,
-                              field = 'species_observed',
-                              fun = sum, na.rm = TRUE)
-names(list_layer) <- 'nlists'
-names(obs_layer) <- 'obs'
-
-mean_layer <- obs_layer/list_layer
-names(mean_layer) <- 'obs_freq'
-
-# combine all layers together ==================================================
-all_spat <- c(list_layer, obs_layer) |> c(mean_layer) |> c(clim) |>
-            terra::aggregate(fact = 2, fun = 'mean', na.rm = TRUE) |> # improve patchiness
-            terra::as.data.frame(xy = TRUE) |>
-            na.omit()
+# SCRATCH FROM DOING ALL SPECIES IN A LIST ----
+#purrr::map(spec_list, \(x) dplyr::filter(x, lubridate::yday(observation_date) %in% window))
+# sp::coordinates(temp$amerob) <- ~longitude+latitude
+# sp::coordinates(temp$ribgul) <- ~longitude+latitude
+# terra::crs(temp$fiscro) <- terra::crs(clim)
+# terra::crs(temp$amerob) <- terra::crs(clim)
+# terra::crs(temp$ribgul) <- terra::crs(clim)
+# list_layer <- purrr::map(temp, \(x) terra::rasterize(x, clim,
+#                                                      field = 'species_observed',
+#                                                      fun = length))
+# obs_layer <- purrr::map(temp, \(x) terra::rasterize(x, clim,
+#                                                     field = 'species_observed',
+#                                                     fun = sum, na.rm = TRUE))
+# mean_layer <- purrr::map2(obs_layer, list_layer, \(x, y) x/y)
+# names(mean_layer$fiscro) <- 'obs_freq'
+# names(mean_layer$ribgul) <- 'obs_freq'
+# names(mean_layer$amerob) <- 'obs_freq'
 
 
