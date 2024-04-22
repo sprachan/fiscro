@@ -2,7 +2,7 @@
 env_dir <- './processed_data'
 source('01functions.R')
 library(optparse)
-load('../data/subsample.RData')
+load('.processed_data/subsample.RData')
 subsample <- dplyr::select(subsample, 
                            checklist_id,
                            species_code, 
