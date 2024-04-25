@@ -82,7 +82,7 @@ for(s in c('fiscro', 'ribgul', 'amerob')){
     
     # add this to the data frame
     temp_df <- na.omit(terra::as.data.frame(daily, xy = TRUE))
-    temp_df$day <- rep(days[i], dim(temp_df[1]))
+    temp_df$day <- rep(days[i], dim(temp_df)[1])
     
     spat_df <- rbind(spat_df, temp_df)
     rm(daily, temp_df, list_layer, obs_layer, mean_layer, clim) # save some RAM
