@@ -28,16 +28,7 @@ classify_mat <- matrix(c(10, 19, 10,
                        ncol = 3, byrow = TRUE)
 
 simple <- terra::classify(lc, rcl = classify_mat)
-# # colors from https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
-# terra::coltab(simple) <- data.frame(value = c(10, 20, 30, 40, 50, 70, 80, 90),
-#                                     col = c('#4f6c9e', 
-#                                             '#DD3021',
-#                                             '#B2AEA5',
-#                                             '#336437',
-#                                             '#CDBB89',
-#                                             '#EDECCF',
-#                                             '#DCD85B',
-#                                             '#BFD5EB'))
+names(simple) <- 'modal_lc'
 print('Land cover is loaded')
 rm(lc)
 
@@ -46,7 +37,18 @@ days <- seq(as.Date('2010-01-01'), as.Date('2010-12-31'), by = 'day') |>
         substr(6, 10)
 
 temp <- NA
-spat_list <- list()
+temp_df <- NA
+
+spat_df <- data.frame(day = NA,
+                      x = NA, 
+                      y = NA, 
+                      num_lists = NA,
+                      num_obs = NA,
+                      modal_lc = NA,
+                      precip = NA,
+                      tmean = NA
+                      )
+
 for(s in c('fiscro', 'ribgul', 'amerob')){
   temp <- dplyr::filter(subsample, species_code == s) |>
           dplyr::distinct()
@@ -69,23 +71,23 @@ for(s in c('fiscro', 'ribgul', 'amerob')){
     list_layer <- terra::rasterize(daily, clim, 
                                    field = 'species_observed', 
                                    fun = length)
+    names(list_layer) <- 'num_lists'
     obs_layer <- terra::rasterize(daily, clim,
                                   field = 'species_observed',
                                   fun = sum, na.rm = TRUE)
-    
-    mean_layer <- obs_layer/list_layer
-    names(mean_layer) <- 'obs_freq'
+    names(obs_layer) <- 'num_obs'
     daily <- c(list_layer, obs_layer) |>
-             c(mean_layer) |>
              c(simple) |>
              c(clim)
     
-    # make this into a dataframe stored in spat_list
-    spat_list[[i]] <- terra::as.data.frame(daily, xy = TRUE) |> na.omit()
-    rm(daily, list_layer, obs_layer, mean_layer, clim)
+    # add this to the data frame
+    temp_df <- na.omit(terra::as.data.frame(daily, xy = TRUE))
+    temp_df$day <- rep(days[i], dim(temp_df[1]))
+    
+    spat_df <- rbind(spat_df, temp_df)
+    rm(daily, temp_df, list_layer, obs_layer, mean_layer, clim) # save some RAM
   }
-  names(spat_list) <- days
-  saveRDS(spat_list, file = file.path(env_dir, paste0('m3_prep_', s, '.RDS')))
+  saveRDS(spat_df, file = file.path(env_dir, paste0('m3_prep_', s, '.RDS')))
   cat('Finished with species ', s)
 }
 
