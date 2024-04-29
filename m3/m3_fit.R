@@ -72,7 +72,7 @@ model_obj <- list(N = length(model_df$day),
                                      model_df$planted_cultivated,
                                      model_df$wetlands))
 str(model_obj)
-model <- rstan::stan_model('m3/m3.stan')
+model <- rstan::stan_model('m3.stan')
 fit = rstan::sampling(model, 
                       model_obj, 
                       iter = 5000, 
