@@ -76,7 +76,7 @@ model <- rstan::stan_model('m3.stan')
 fit = rstan::sampling(model, 
                       model_obj, 
                       iter = 5000, 
-                      chains = 4,
-                      cores = 4,
+                      chains = 2,
+                      cores = 2,
                       verbose = TRUE)
 saveRDS(fit, file = file.path('~', 'eBird_project', 'model_outputs', paste0(opt$s, '_m3fit.RDS')))
