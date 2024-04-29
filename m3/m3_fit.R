@@ -6,7 +6,7 @@ option_list <- list(make_option(c('-s', '--species',
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-model_df <- readRDS(paste0('m3_prep_', s, '.RDS'))[-1,]
+model_df <- readRDS(paste0('m3_prep_', opt$s, '.RDS'))[-1,]
 
 # get data lengths ---- 
 lengths_df <- dplyr::group_by(model_df, day) |> 
