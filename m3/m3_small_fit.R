@@ -83,4 +83,4 @@ fit = rstan::sampling(model,
                       chains = 2,
                       cores = 2,
                       verbose = TRUE)
-saveRDS(fit, file = file.path('~', 'eBird_project', 'model_outputs', paste0(opt$s, '_m3fit.RDS')))
+saveRDS(fit, file = file.path('~', 'eBird_project', 'model_outputs', paste0(opt$s, '_m3smallfit.RDS')))
