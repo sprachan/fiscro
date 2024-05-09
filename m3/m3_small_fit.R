@@ -7,7 +7,8 @@ option_list <- list(make_option(c('-s', '--species',
 opt <- parse_args(OptionParser(option_list = option_list))
 
 model_df <- readRDS(paste0('m3_prep_', opt$s, '.RDS'))[-1,] 
-model_df <- dplyr::filter(day %in% unique(model_df$day)[1:10])
+model_df <- dplyr::filter(model_df,
+                          day %in% unique(model_df$day)[1:10])
 
 
 
