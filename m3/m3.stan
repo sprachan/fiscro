@@ -9,17 +9,18 @@ invlogit(beta1*precip+beta2*temp+beta3*lc+beta0)
 data {
   int <lower = 0> N; // length of the data
   int <lower = 0> K; // number of predictors
+  int <lower = 0> D; // number of days (365 for whole data)
   array [N] int obs; // bird observations
   array [N] int lists; // lists
-  array[365] int group_size; // number of observations for each day group;
+  array[D] int group_size; // number of observations for each day group;
   matrix[N, K] predictors; // predictors
 }
 
 // The parameters accepted by the model. 
 parameters {
-  matrix[365, K] coeffs; // coefficients
+  matrix[D, K] coeffs; // coefficients
   real <lower = 0> sigma;
-  vector[365] inter;
+  vector[D] inter;
 }
 
 /* The model to be estimated. We model the output
@@ -34,7 +35,7 @@ model {
   coeffs[1] ~ cauchy(0, 2.5); // initialize the first row of coefficients
   inter[1] ~ cauchy(0, 10); // initialize the first intercept
   
-  for(t in 2:365){
+  for(t in 2:D){
     // infer the next day's coefficients based on the previous day's
     coeffs[t] ~ normal(coeffs[t-1], sigma); 
     inter[t] ~ normal(inter[t-1], sigma);
@@ -47,7 +48,7 @@ model {
   int pos;
   pos = 1;
   vector[10] x;
-  for (i in 1:365){
+  for (i in 1:D){
     segment(obs, pos, group_size[i]) ~ binomial_logit(segment(lists, pos, group_size[i]),
                                                       block(predictors, pos, 1,
                                                             group_size[i], K)
