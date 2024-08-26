@@ -33,11 +33,8 @@ option_list <- list(
               help="ebd output file name"),
   make_option(c("-d", "--sedoutput"), type = 'character',
               action = 'store',
-              help = "sed output file name"),
-  make_option(c("-e", "--zerofilloutput"), type = 'character',
-              action = 'store',
-              help = "zerofill output prefix, eg., ./processed_data/ct_")
-)
+              help = "sed output file name")
+  )
 
 # create a parser object
 opt_parser = OptionParser(option_list = option_list);
@@ -50,14 +47,13 @@ input_ebd <- opt$ebdinput
 input_sed <- opt$sedinput
 output_ebd <- opt$ebdoutput
 output_sed <- opt$sedoutput
-zf_output <- opt$zerofilloutput
+
 #output will go to the command line, making this easier to debug and trace.
 print('names are set:')
 cat('input ebd: ', input_ebd, '\n', 
     'input sed: ', input_sed, '\n',
     'output ebd: ', output_ebd, '\n',
-    'output sed: ', output_sed, '\n',
-    'prefix: ', prefix, '\n')
+    'output sed: ', output_sed, '\n')
 
 # Setup variables for filters =================================================
 species <- c('Fish Crow',
