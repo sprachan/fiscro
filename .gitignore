@@ -5,3 +5,7 @@ filtered_data/
 .Rhistory
 model_prelim.R
 test.R
+sandbox/
+*.RDS
+/images
+*.png
