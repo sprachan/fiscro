@@ -33,7 +33,6 @@ library(optparse)
 
 
 ## Options ----
-
 option_list <- list(
   make_option(c("-e", "--ebdinput"), type = 'character',
               action = 'store',
@@ -46,7 +45,7 @@ option_list <- list(
               help = "zerofill output prefix, eg., ./processed_data/ct_")
 )
 
-# create a parser object
+# parse
 opt_parser = OptionParser(option_list = option_list);
 
 # make a list of the arguments passed via command line
@@ -70,8 +69,10 @@ species <- c('Fish Crow',
              'Blue Jay',
              'American Crow')
 
-ebd_zf <- auk_zerofill(input_ebd, sampling_events = input_sed,
-                       species = species, collapse = TRUE) |>
+ebd_zf <- auk_zerofill(input_ebd, 
+                       sampling_events = input_sed,
+                       species = species, 
+                       collapse = TRUE) |> # collapse = T to return a dataframe
           mutate(species_code = ebird_species(scientific_name, 'code'),
                  observation_count = na_if(observation_count, 'X'),
                  observation_count = as.numeric(observation_count),
@@ -93,19 +94,14 @@ ebd_zf <- auk_zerofill(input_ebd, sampling_events = input_sed,
                  effort_distance_km,
                  number_observers) |>
           filter(protocol_type %in% c('Stationary', 'Traveling'),
-                 !is.na(time_observations_started),
-                 number_observers <=10)
-print('zf, filtered, and selected columns')
+                 !is.na(time_observations_started))
+print('zero-filled, filtered, and selected columns')
+
+head(ebd_zf)
+
 # write file
 write.csv(ebd_zf, file = output_zf)
 print('written')
 
 
-combined_zf  <- list.files(path = './processed_data', 
-                           pattern = 'zf',
-                           all.files = TRUE, 
-                           full.names = TRUE) |>
-                purrr::map(\(x) read.csv(x)) |>
-                bind_rows()
 
-save(combined_zf, file = './processed_data/combined_zf.RData')

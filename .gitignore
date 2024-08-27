@@ -9,3 +9,6 @@ sandbox/
 *.RDS
 /images
 *.png
+.DS_Store
+.Rapp.history
+
