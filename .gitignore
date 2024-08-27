@@ -3,4 +3,5 @@ raw_ebd/
 filtered_data/
 *.out
 .Rhistory
+model_prelim.R
 test.R

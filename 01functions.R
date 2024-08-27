@@ -1,6 +1,7 @@
 # Convenience Functions ========================================================
 load_data <- function(fp = './processed_data/subsample.RData',
-                      years = seq(2010, 2022, by = 1)){
+                      years = seq(2010, 2022, by = 1),
+                      keep_date = FALSE){
   load(fp)
   print('loaded')
   str(subsample)
@@ -11,15 +12,23 @@ load_data <- function(fp = './processed_data/subsample.RData',
   print('filtered')
   
   # process data
-  ym_obs_freq <- dplyr::mutate(subsample,
-                               year_mon = zoo::as.yearmon(observation_date)) |>
-                 dplyr::group_by(year_mon, long_bin, lat_bin) |>
-                 dplyr::summarize(obs_freq = sum(species_observed)/dplyr::n(),
-                                  n_lists = dplyr::n()) |>
-                 dplyr::mutate(obs_freq = as.numeric(obs_freq))
+  if(keep_date == FALSE){
+    out <- dplyr::mutate(subsample,
+                         year_mon = zoo::as.yearmon(observation_date)) |>
+           dplyr::group_by(year_mon, long_bin, lat_bin) |>
+           dplyr::summarize(obs_freq = sum(species_observed)/dplyr::n(),
+                           n_lists = dplyr::n()) |>
+           dplyr::mutate(obs_freq = as.numeric(obs_freq))
+  }else{
+    out <- subsample |>
+           dplyr::group_by(observation_date, long_bin, lat_bin) |>
+           dplyr::summarize(obs_freq = sum(species_observed)/dplyr::n(),
+                            n_lists = dplyr::n()) |>
+           dplyr::mutate(obs_freq = as.numeric(obs_freq),
+                         year_mon = zoo::as.yearmon(observation_date))
+  }
   print('summarized')
-  
-  return(ym_obs_freq)
+  return(out)
 }
 
 
@@ -104,38 +113,67 @@ save_pages_break <- function(data_in, path, name, ncol, nrow, facets, plot_type 
 #> black if the observation frequency is ABOVE that value and white if
 #> the observation frequency is BELOW the value.
 
-cutoff_plot <- function(data_in, cutoff, title){
-  legend_lab <- paste0('OF over ', title)
-  p <- data_in |> dplyr::mutate(over = dplyr::case_when(obs_freq < cutoff ~ 'No',
+cutoff_plot <- function(data_in, cutoff, title, log = FALSE, epsilon = NULL){
+  legend_lab <- paste0('OF over ', cutoff)
+  if(log == TRUE){
+    temp <- data_in |> dplyr::mutate(obs_freq = log10(obs_freq + epsilon))
+  }else{
+    temp <- data_in
+  }
+  p <- temp|> dplyr::mutate(over = dplyr::case_when(obs_freq < cutoff ~ 'No',
                                                         obs_freq >= cutoff ~ 'Yes'),
                                 over = ordered(over, levels = c('No', 'Yes'))) |>
     ggplot2::ggplot(ggplot2::aes(x = long_bin, y = lat_bin, fill = over))+
     ggplot2::geom_raster()+
     ggplot2::theme_bw()+
     ggplot2::theme(panel.background = ggplot2::element_rect(fill = '#555555'),
-                   legend.key = ggplot2::element_rect(color = "black"))+
-    ggplot2::scale_fill_manual(values = c('white', 'black'))+
-    ggplot2::labs(fill = legend_lab)
+                   legend.key = ggplot2::element_rect(color = "black"),
+                   legend.position = 'bottom')+
+    ggplot2::scale_fill_manual(values = c('black', 'white'))+
+    ggplot2::labs(fill = legend_lab,
+                  title = title,
+                  x = 'Longitude',
+                  y = 'Latitude')
   return(p)
 }
 
 #> DESCRIPTION: Given a dataframe of observation frequencies with 
 #> associated long and lat bins, make a ggplot object for mapping.
+#> if plot_facet is FALSE, each plot goes on its own page in the pdf.
+#> In this case, each page reflects data given by keep, a vector of boolean
+#> values.
 
-map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
-  p <- dplyr::arrange(data_in, year_mon) |>
+map_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6, plot_facet = TRUE, keep = NULL, over = ''){
+  if(plot_facet == TRUE){
+    p <- dplyr::arrange(data_in, year_mon) |>
       ggplot(aes(x = long_bin, 
-                  y = lat_bin,
-                  fill = log10(obs_freq+epsilon)))+
-       geom_raster()+
-       ggforce::facet_wrap_paginate(facets = vars(year_mon),
-                                             nrow = nrow,
-                                             ncol = ncol)+
-       scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
-       theme_bw()+
-       theme(legend.direction = 'horizontal',
-             legend.position = 'bottom')+
-       labs(fill = paste0('log(OF+', epsilon, ')'))
+                 y = lat_bin,
+                 fill = log10(obs_freq+epsilon)))+
+      geom_raster()+
+      ggforce::facet_wrap_paginate(facets = vars(year_mon),
+                                   nrow = nrow,
+                                   ncol = ncol)+
+      viridis::scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+      ggplot2::theme_bw()+
+      ggplot2::theme(legend.direction = 'horizontal',
+                     legend.position = 'bottom')+
+      ggplot2::labs(fill = paste0('log10(OF+', epsilon, ')'),
+                    x = 'Longitude',
+                    y = 'Latitude')
+  }else{
+    p <- data_in[keep,] |>
+         ggplot2::ggplot(ggplot2::aes(x = long_bin,
+                                      y = lat_bin,
+                                      fill = log10(obs_freq+epsilon)))+
+         ggplot2::geom_raster()+
+         viridis::scale_fill_viridis(option = 'inferno', na.value = '#cccccc')+
+         ggplot2::theme_bw()+
+         ggplot2::theme(legend.position = 'bottom')+
+         ggplot2::labs(fill = paste0('log10(OF+', epsilon, ')'),
+                       title = over,
+                       x = 'Longitude',
+                       y = 'Latitude')
+  }
   return(p)
 }
 
@@ -155,22 +193,43 @@ hist_uncompared <- function(data_in, epsilon, nrow = 4, ncol = 6){
 
 #> DESCRIPTION: Given a dataframe of differences in observation frequencies with 
 #> associated long and lat bins, make a ggplot object for mapping.
-map_compared <- function(data_in, nrow = 3, ncol = 4){
-  p <- ggplot2::ggplot(data_in, 
-                       ggplot2::aes(x = long_bin, 
-                                    y = lat_bin,
-                                    fill = transform_diff))+
-    ggplot2::geom_raster()+
-    ggforce::facet_wrap_paginate(facets = ggplot2::vars(comparison),
-                                 nrow = nrow,
-                                 ncol = ncol)+
-    ggplot2::scale_fill_distiller(palette = 'RdBu', 
-                                  direction = -1,
-                                  na.value = '#cccccc')+
-    ggplot2::theme_bw()+
-    ggplot2::theme(legend.direction = 'horizontal',
-          legend.position = 'bottom')+
-    ggplot2::labs(fill = ' sign sqrt-transformed diff')
+map_compared <- function(data_in, use_facets = TRUE, nrow = 3, ncol = 4, over = ''){
+  if(use_facets == TRUE){
+    p <- ggplot2::ggplot(data_in, 
+                         ggplot2::aes(x = long_bin, 
+                                      y = lat_bin,
+                                      fill = transform_diff))+
+      ggplot2::geom_raster()+
+      ggforce::facet_wrap_paginate(facets = ggplot2::vars(comparison),
+                                   nrow = nrow,
+                                   ncol = ncol)+
+      ggplot2::scale_fill_distiller(palette = 'RdBu', 
+                                    direction = -1,
+                                    na.value = '#cccccc')+
+      ggplot2::theme_bw()+
+      ggplot2::theme(legend.direction = 'horizontal',
+                     legend.position = 'bottom')+
+      ggplot2::labs(fill = ' sign sqrt-transformed diff')
+  }else{
+    title_clean <- paste(substr(over, 1, 6), 'vs', substr(over, 8, 13))
+    p <- dplyr::filter(data_in, comparison == over) |>
+         ggplot2::ggplot(ggplot2::aes(x = long_bin, 
+                                      y = lat_bin, 
+                                      fill = transform_diff))+
+         ggplot2::geom_raster()+
+         ggplot2::scale_fill_distiller(palette = 'RdBu',
+                                       direction = -1,
+                                       na.value = '#cccccc',
+                                       limits = c(-1, 1))+
+         ggplot2::theme_bw()+
+         ggplot2::theme(legend.direction = 'horizontal',
+                        legend.position = 'bottom')+
+         ggplot2::labs(title = title_clean,
+                       x = 'Longitude',
+                       y = 'Latitude',
+                       fill = 'Square root transformed difference')
+  }
+
   
   return(p)
 }
@@ -265,8 +324,7 @@ df_to_mat <- function(df, over, nest_by = 'ym', n = 200){
            dplyr::full_join(df) |>
            dplyr::filter(week == over) |>
            dplyr::arrange(year, lat_bin, long_bin)
-    arr <- array(out$obs_freq, dim = c(200, 200, 14))
-    out <- apply(X = arr, MARGIN = c(1, 2), mean, na.rm = TRUE)
+    out <- array(out$obs_freq, dim = c(200, 200, 14))
     return(out)
   }
 }
@@ -284,6 +342,54 @@ mats_to_vecdf <- function(matrix_list, enf_name, enf_value){
     tibble::enframe(name = enf_name, value = enf_value)
   return(out)
 }
+
+#> DESCRIPTION: Get the window of days from day x to 7 days after day x. This
+#> "wraps around" to the beginning of the next year, if needed: for example, 
+#> inputting 365 and a non-leap year will return (365, 1, 2, 3, 4, 5, 6). 
+
+get_window <- function(day){
+  if(366-day >= 7){
+    window <- seq(day, day+7)
+  }else if(day != 366){
+    x <- seq(day, 365)
+    y <- seq(1, 7-length(x))
+    window <- c(x, y)
+  }else{
+    window <- c(366, seq(1, 6))
+  }
+  return(window)
+}
+
+# designed to be iterated over day
+df_to_slide_mat <- function(df, day = NULL, year = NULL){
+  stopifnot(!is.null(day))
+  window <- get_window(day)
+  if(is.null(year)){
+    temp <- dplyr::filter(df, day %in% window) |>
+      dplyr::ungroup() |>
+      dplyr::group_by(long_bin, lat_bin, year) |>
+      dplyr::summarize(avg_obs_freq = mean(obs_freq, na.rm = TRUE)) |>
+      dplyr::ungroup() |>
+      tidyr::complete(tidyr::nesting(year),
+                      long_bin = 1:200,
+                      lat_bin = 1:200) |>
+      dplyr::arrange(year, lat_bin, long_bin)
+    arr <- array(temp$avg_obs_freq, dim = c(200, 200, length(unique(df$year))))
+    out <- apply(X = arr, MARGIN = c(1, 2), FUN = mean, na.rm = TRUE)
+  }else{
+    temp <- dplyr::filter(df, year == year) |>
+            dplyr::ungroup() |>
+            dplyr::group_by(long_bin, lat_bin, day) |>
+            dplyr::summarize(avg_obs_freq = mean(obs_freq, na.rm = TRUE)) |>
+            dplyr::ungroup() |>
+            tidyr::complete(long_bin = 1:200,
+                            lat_bin = 1:200) |>
+            dplyr::arrange(lat_bin, long_bin)
+    out <- matrix(temp$avg_obs_freq, nrow = 200, ncol = 200)
+  }
+  return(out)
+}
+
 # Smoothing Functions ==========================================================
 
 #> DESCRIPTION: Smooth a matrix of data. For a cell x, the new "smoothed" value
