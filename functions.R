@@ -1,4 +1,10 @@
 # Convenience Functions ========================================================
+#> DESCRIPTION: Loads data and filters to species of interest. Streamlines some
+#> commands that otherwise would be used at the beginning of most visualizing
+#> scripts. keep_date = FALSE (default) summarizes by year-month, helpful for
+#> plotting. keep_date = TRUE summarizes by date (year-month-day), pooling
+#> data from each day regardless of the time the checklist began.
+
 load_data <- function(fp = './processed_data/subsample.RData',
                       years = seq(2010, 2022, by = 1),
                       keep_date = FALSE){

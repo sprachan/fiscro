@@ -1,9 +1,10 @@
 # DESCRIPTION ------------------------------------------------------------------
 #>
 #> This script uses a kernel density estimator to estimate checklist density
-#> over a 200x200 spatial grid, then samples with weights inversely proportional 
+#> over a <n>x<n> spatial grid, then samples with weights inversely proportional 
 #> to the estimated density in order to reduce spatial bias in the data.
-#>
+#> The grid size, <n>, is given when this script is called in the command line.
+#> 
 # ------------------------------------------------------------------------------
 
 
@@ -49,64 +50,62 @@ epsilon <- opt$epsilon |> as.numeric()
 sample_size <- opt$samplesize |> as.numeric()
 tag <- opt$plottag
 
-# test that this worked
+# print out parameters used for density estimation
 print(num_bins)
 print(epsilon)
 print(sample_size)
 print(tag)
 
+# File Paths ===================================================================
+plot_path <- file.path('~', 'eBird_project', 'plots', 'subsampling')
+text_path <- file.path('~', 'eBird_project', 'subsampling_metrics')
+
 # Load and wrangle data ========================================================
 # Load combined data -- this takes a minute
 load('./processed_data/combined_zf.RData')
 str(combined_zf)
-
+head(combined_zf)
 # only need checklist id and location information (lat and long)
 lists_location <- dplyr::select(combined_zf,
                                 checklist_id,
                                 latitude,
                                 longitude) |>
-                  distinct(.keep_all = TRUE)
+                  distinct(.keep_all = TRUE) # removes identical rows
 str(lists_location)
 
 # Sampling =====================================================================
 # kde2d to get a probability density estimate for a given latitude and longitude
-probs <- kde2d(lists_location$longitude, 
-               lists_location$latitude,
-               n = num_bins)
+dens <- kde2d(lists_location$longitude, 
+              lists_location$latitude,
+              n = num_bins)
 print('done kde2d')
 
 file_name <- paste0('prob_map_', tag, '.png')
-fp <- file.path('~', 'eBird_project', 'plots', 'subsampling', file_name)
-png(filename = fp)
-image(probs, col = cols)
-title(main = paste(num_bins, epsilon, sample_size, sep = ', ')) 
+png(filename = file.path(plot_path, file_name))
+  image(dens, col = cols)
+  title(main = paste(num_bins, epsilon, sample_size, sep = ', ')) 
 dev.off()
 
 ## "flatten" the probability matrix into a vector
 #> going across each row, then down to the next.
-prob_vec <- as.vector(t(probs$z))
+prob_vec <- as.vector(t(dens$z))
 
 # Need to assign each checklist a spatial "bin" that matches a "bin"
-#> in the kde2d lat/long.
+#> in the kde2d lat/long (stored in dens$y and dens$x, respectively)
 
-long_bins_1 <- lapply(lists_location$longitude, get_bin, probs$x) |>
-               unlist()
-lat_bins_1  <- lapply(lists_location$latitude, get_bin, probs$y) |>
-               unlist()
 lists_location <- mutate(lists_location,
-                         long_bin = long_bins_1,
-                         lat_bin = lat_bins_1,
+                         long_bin = unlist(lapply(lists_location$longitude,
+                                                  FUN = get_bin,
+                                                  dens$x)),
+                         lat_bin = unlist(lapply(lists_location$latitude,
+                                                 FUN = get_bin,
+                                                 dens$y)),
             		         cell = (long_bin-1)*num_bins+lat_bin,
             		         weight = 1/(prob_vec[cell]+epsilon))
 str(lists_location)
 
 print('bin check: ')
-print(sum(lists_location$cell == 0))
-
-
-# get some RAM back
-remove(long_bins_1)
-remove(lat_bins_1)
+print(sum(lists_location$cell == 0)) # should be 0
 
 
 # sample! do this on as small a df as possible to speed up runtimes
@@ -126,11 +125,11 @@ p <- list_subsample |> group_by(long_bin, lat_bin) |>
                        geom_point(aes(x = long_bin, y = lat_bin, color = num_lists),
 				                          size = 0.55)+
                        scale_color_viridis()
-
-
-file_name <- paste0('subsample_map_', tag, '.png')
-fp <- file.path('~', 'eBird_project', 'plots', 'subsampling',  file_name)
-ggsave(filename = fp, plot = p, device = 'png', dpi = 300)
+file_name <- paste0('subsample_map_', tag, '.png') 
+ggsave(filename = file.path(plot_path, file_name), 
+       plot = p, 
+       device = 'png', 
+       dpi = 300)
 
 
 print('distribution plotted')
@@ -140,9 +139,11 @@ print('distribution plotted')
 # save subsample metrics =======================================================
 prob_var <- var(prob_vec)
 file_name <- paste0('subsamp_output_', tag, '.txt')
-fp <- file.path('~', 'eBird_project', file_name)
-cat(prob_var, paste(num_bins, epsilon, sample_size, sep = ', '), 
-    file = fp)
+
+cat('Probability Variance: ', prob_var, 
+    paste(num_bins, epsilon, sample_size, sep = ', '), 
+    file = file.path(text_path, file_name))
+
 print('outputted')
 
 # use checklist sample to subset the whole data set ============================
@@ -153,7 +154,7 @@ subsample <- left_join(list_subsample,
                        by = join_by(checklist_id))
 
 str(subsample)
-
+head(subsample)
 save(subsample, file = './processed_data/subsample.RData')
 
 
