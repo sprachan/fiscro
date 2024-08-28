@@ -65,35 +65,11 @@ species <- c('Fish Crow',
 
 duration <- c(5, 180) # 5 minutes to 3 hours
 distance <- c(0, 5) # 0 to 5km
-bcrs <- c(12, 23, 22, 24, 28, 13, 14, 30, 28, 29)
-states <- c('CA-NB',
-            'CA-NS',
-            'CA-QC',
-            'CA-ON',
-            'US-ME',
-            'US-NH',
-            'US-VT',
-            'US-MA',
-            'US-RI',
-            'US-CT',
-            'US-NJ',
-            'US-DE',
-            'US-MD',
-            'US-DC',
-            'US-WV',
-            'US-VA',
-            'US-OH',
-            'US-MI',
-            'US-IN',
-            'US-KY',
-            'US-IL',
-            'US-WI',
-            'US-MN')
+bbox <- c(-104.046, 24.53, -66, 50) # xmin, ymin, xmax, ymax
 # Filter =======================================================================
 #> Will overwrite existing filtered files if they exist in the destination
 filters <- auk_ebd(file = input_ebd, file_sampling = input_sed) |>
-            auk_bcr(bcrs) |>
-            auk_state(states) |>
+            auk_bbox() |>
             auk_species(species) |>
             auk_duration(duration) |>
             auk_distance(distance=distance) |>
