@@ -5,4 +5,4 @@ combined_zf  <- list.files(path = './processed_data',
                 purrr::map(\(x) read.csv(x)) |>
                 dplyr::bind_rows()
 
-save(combined_zf, file = './processed_data/combined_zf.RData')
+saveRDS(combined_zf, file = './processed_data/combined_zf.RDS')

@@ -59,15 +59,15 @@ print(tag)
 # File Paths ===================================================================
 plot_path <- file.path('~', 'eBird_project', 'plots', 'subsampling')
 text_path <- file.path('~', 'eBird_project', 'subsampling_metrics')
+zf_path <- file.path('.', 'processed_data', 'combined_zf.RDS')
 
 # Load and wrangle data ========================================================
-# Load combined data -- this takes a minute
-load('./processed_data/combined_zf.RData')
-str(combined_zf)
-head(combined_zf)
+# print out the structure of the combined_zf data frame
+readRDS(zf_path) |> str()
+
 # only need checklist id and location information (lat and long)
-lists_location <- dplyr::select(combined_zf,
-                                checklist_id,
+lists_location <- readRDS(zf_path) |>
+                  dplyr::select(checklist_id,
                                 latitude,
                                 longitude) |>
                   distinct(.keep_all = TRUE) # removes identical rows
@@ -108,21 +108,24 @@ print('bin check: ')
 print(sum(lists_location$cell == 0)) # should be 0
 
 
-# sample! do this on as small a df as possible to speed up runtimes
+# sample! do this on as small a data frame as possible to speed up run times
 list_subsample <- lists_location |> 
                   dplyr::select(checklist_id, long_bin, lat_bin, weight) |>
 	                slice_sample(n = sample_size, 
 						                   weight_by = lists_location$weight)
 	
 print('sampled')
+rm(lists_location)
 str(list_subsample)
-save(list_subsample, file = './processed_data/list_subsample.RData')
+saveRDS(list_subsample, file = './processed_data/list_subsample.RDS')
 
 # plot new checklist distribution
 p <- list_subsample |> group_by(long_bin, lat_bin) |>
                        summarize(num_lists = n()) |>
                        ggplot()+
-                       geom_point(aes(x = long_bin, y = lat_bin, color = num_lists),
+                       geom_point(aes(x = long_bin, 
+                                      y = lat_bin, 
+                                      color = num_lists),
 				                          size = 0.55)+
                        scale_color_viridis()
 file_name <- paste0('subsample_map_', tag, '.png') 
@@ -130,12 +133,7 @@ ggsave(filename = file.path(plot_path, file_name),
        plot = p, 
        device = 'png', 
        dpi = 300)
-
-
 print('distribution plotted')
-
-
-
 # save subsample metrics =======================================================
 prob_var <- var(prob_vec)
 file_name <- paste0('subsamp_output_', tag, '.txt')
@@ -147,14 +145,11 @@ cat('Probability Variance: ', prob_var,
 print('outputted')
 
 # use checklist sample to subset the whole data set ============================
-load('./processed_data/combined_zf.RData')
-
-subsample <- left_join(list_subsample, 
-                       combined_zf, 
-                       by = join_by(checklist_id))
+subsample <- readRDS(zf_path) |>
+             function(x) left_join(list_subsample,
+                                   x,
+                                   by = join_by(checklist_id))
 
 str(subsample)
 head(subsample)
-save(subsample, file = './processed_data/subsample.RData')
-
-
+saveRDS(subsample, file = './processed_data/subsample.RDS')
