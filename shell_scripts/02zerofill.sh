@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH -c 16
+#SBATCH -c 32
 
 # the zerofill R script takes arguments -e for ebd input, -s for sed input, and -z for zerofill output
 
@@ -16,7 +16,7 @@ do
 done;
 
 # combine these output zerofilled files into one
-Rscript ./data_processing/02-2combine_zerofill.R
+Rscript ./data_processing/02-2combine_zf.R
 
 
 
