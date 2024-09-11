@@ -70,6 +70,9 @@ ext <- dplyr::select(ebd_ds, longitude, latitude) |>
 long_breaks <- seq(ext$long_min, ext$long_max, length.out = num_bins)
 lat_breaks <- seq(ext$lat_min, ext$lat_max, length.out = num_bins)
 
+print('Longitude and latitude break vectors created') # progress check
+
+
 # write this directly to a parquet file to keep things relatively faster.
 dplyr::select(ebd_ds, checklist_id, longitude, latitude) |>
 dplyr::distinct() |>
@@ -80,6 +83,8 @@ dplyr::mutate(long_bin = findInterval(longitude, long_breaks),
 write_dataset(path = file.path(pq_path, 'checklists'),
               format = 'parquet',
               existing_data_behavior = 'overwrite')
+
+print('Wrote checklist and bins to parquet file')
 
 ## using this binned/rasterized data, calculate sampled p adjusted by epsilon ----
 list_ds <- open_dataset(file.path(pq_path, 'checklists'))
@@ -97,6 +102,25 @@ list_subsample <- dplyr::select(list_ds, checklist_id, cell) |>
                   dplyr::slice_sample(n = sample_size,
                                       weight_by = 1/(sampled_p+epsilon))
 
+print('Subsampled checklists')
+
+
+# Subsample the whole data =====================================================
+# right_join keeps all the observations in y, but not x; that is, we keep the
+#> subsampled checklists, but not the other ones.
+dplyr::right_join(ebd_ds, 
+                  list_subsample, 
+                  by = dplyr::join_by(checklist_id)) |>
+  dplyr::mutate(long_bin = cell %/% num_bins + 1,
+                lat_bin = cell %% num_bins,
+                lat_bin = dplyr::case_when(lat_bin != 0 ~ lat_bin,
+                                           .default = num_bins)) |>
+  write_csv_dataset(path = file.path(pq_path, 'subsamples'),
+                    partitioning = c('species_code'),
+                    existing_data_behavior = 'overwrite')
+
+print('Used checklist subsample to subset whole dataset')
+
 # Visualize the checklist subsample ============================================
 file_name <- paste0('subsample_map_', tag, '.png') 
 
@@ -111,21 +135,8 @@ png(filename = file.path(plot_path, file_name))
         col = viridis::inferno(n = 10))
 dev.off()
 
-rm(mat)
+print('Visualized')
 
-# Subsample the whole data =====================================================
-# right_join keeps all the observations in y, but not x; that is, we keep the
-#> subsampled checklists, but not the other ones.
-dplyr::right_join(ebd_ds, 
-                  list_subsample, 
-                  by = dplyr::join_by(checklist_id)) |>
-dplyr::mutate(long_bin = cell %/% num_bins + 1,
-              lat_bin = cell %% num_bins,
-              lat_bin = dplyr::case_when(lat_bin != 0 ~ lat_bin,
-                                         .default = num_bins)) |>
-write_csv_dataset(path = file.path(pq_path, 'subsamples'),
-                  partitioning = c('species_code'),
-                  existing_data_behavior = 'overwrite')
 
-remove(list_subsample) # save some memory
+
 
