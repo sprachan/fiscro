@@ -103,12 +103,15 @@ file_name <- paste0('subsample_map_', tag, '.png')
 mat <- list_subsample |>
        dplyr::group_by(cell) |>
        dplyr::summarize(num_lists = dplyr::n()) |>
-       dplyr::arrange(cell)
+       dplyr::arrange(cell) |>
+       matrix(nrow = num_bins, ncol = num_bins)
 
 png(filename = file.path(plot_path, file_name))
   image(log10(mat+1e-4),
         col = viridis::inferno(n = 10))
 dev.off()
+
+rm(mat)
 
 # Subsample the whole data =====================================================
 # right_join keeps all the observations in y, but not x; that is, we keep the
