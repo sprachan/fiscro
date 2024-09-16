@@ -55,6 +55,7 @@ pq_path <- file.path('.', 'processed_data')
 
 # Subsample ====================================================================
 # use the data that has already been binned into a 500x500 grid
+ebd_ds <- arrow::open_dataset(file.path(pq_path, 'species'))
 list_ds <- open_dataset(file.path(pq_path, 'checklists')) 
 
 # get a random sample from these data
