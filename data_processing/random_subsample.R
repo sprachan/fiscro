@@ -67,7 +67,7 @@ print('Subsampled checklists')
 dplyr::right_join(ebd_ds, 
                   list_subsample, 
                   by = dplyr::join_by(checklist_id)) |>
-plyr::mutate(long_bin = cell %/% num_bins + 1,
+dplyr::mutate(long_bin = cell %/% num_bins + 1,
              lat_bin = cell %% num_bins,
              lat_bin = dplyr::case_when(lat_bin != 0 ~ lat_bin,
                                         .default = num_bins)) |>
