@@ -6,7 +6,7 @@
 #> "p" as (# lists in a long-lat bin combination)/(# of all lists), then 
 #> resamples the data with weight given by 1/(p+epsilon). This produces a less
 #> spatially biased subsample with size sample_size (from command line). We 
-#> visualize the subsample, and write it to csv files partitioned by species.
+#> write the subsample to parquet files partitioned by species.
 #> 
 # ------------------------------------------------------------------------------
 
@@ -18,9 +18,6 @@ library(dplyr)
 # get options from command line for flexibility
 library(optparse)
 source('functions.R')
-
-# color palettes
-library(viridis)
 ## Parse command line options ----
 option_list <- list(
   make_option(c('-n', '--numbins'), type = 'integer', 
@@ -115,28 +112,8 @@ dplyr::right_join(ebd_ds,
                 lat_bin = cell %% num_bins,
                 lat_bin = dplyr::case_when(lat_bin != 0 ~ lat_bin,
                                            .default = num_bins)) |>
-  write_csv_dataset(path = file.path(pq_path, 'subsamples'),
+  write_parquet(path = file.path(pq_path, 'subsamples'),
                     partitioning = c('species_code'),
                     existing_data_behavior = 'overwrite')
 
 print('Used checklist subsample to subset whole dataset')
-
-# Visualize the checklist subsample ============================================
-file_name <- paste0('subsample_map_', tag, '.png') 
-
-mat <- list_subsample |>
-       dplyr::group_by(cell) |>
-       dplyr::summarize(num_lists = dplyr::n()) |>
-       dplyr::arrange(cell) |>
-       matrix(nrow = num_bins, ncol = num_bins)
-
-png(filename = file.path(plot_path, file_name))
-  image(log10(mat+1e-4),
-        col = viridis::inferno(n = 10))
-dev.off()
-
-print('Visualized')
-
-
-
-
