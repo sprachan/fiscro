@@ -71,7 +71,7 @@ dplyr::mutate(long_bin = cell %/% num_bins + 1,
              lat_bin = cell %% num_bins,
              lat_bin = dplyr::case_when(lat_bin != 0 ~ lat_bin,
                                         .default = num_bins)) |>
-write_parquet(path = file.path(pq_path, 'subsamples', 'random'),
+write_dataset(path = file.path(pq_path, 'subsamples', 'random'),
               partitioning = c('species_code'),
               existing_data_behavior = 'overwrite')
 
