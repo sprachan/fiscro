@@ -26,8 +26,8 @@ option_list <- list(
                 action = 'store', help = 'probability weight adjustment')),
   make_option(c('-s', '--samplesize', type = 'integer',
                 action = 'store', help = 'subsample size')),
-  make_option(c('-t', '--plottag', type = 'character',
-                action = 'store', help = 'suffix for plots'))
+  make_option(c('-f', '--folder', type = 'character',
+                action = 'store', help = 'subfolder for subsample'))
 )
 
 # create a parser object
@@ -40,18 +40,19 @@ opt = parse_args(opt_parser);
 num_bins <- opt$numbins
 epsilon <- opt$epsilon |> as.numeric()
 sample_size <- opt$samplesize |> as.numeric()
-tag <- opt$plottag
+folder <- opt$folder
 
 # print out parameters used for rasterizing
 print(num_bins)
 print(epsilon)
 print(sample_size)
-print(tag)
+print(folder)
 
 # File Paths ===================================================================
 plot_path <- file.path('~', 'eBird_project', 'plots', 'subsampling')
 text_path <- file.path('~', 'eBird_project', 'subsampling_metrics')
 pq_path <- file.path('.', 'processed_data')
+
 
 # Subsample ====================================================================
 ebd_ds <- arrow::open_dataset(file.path(pq_path, 'species'))
@@ -112,7 +113,7 @@ dplyr::right_join(ebd_ds,
                 lat_bin = cell %% num_bins,
                 lat_bin = dplyr::case_when(lat_bin != 0 ~ lat_bin,
                                            .default = num_bins)) |>
-  write_parquet(path = file.path(pq_path, 'subsamples'),
+  write_parquet(path = file.path(pq_path, 'subsamples', folder),
                     partitioning = c('species_code'),
                     existing_data_behavior = 'overwrite')
 
