@@ -113,8 +113,9 @@ dplyr::right_join(ebd_ds,
                 lat_bin = cell %% num_bins,
                 lat_bin = dplyr::case_when(lat_bin != 0 ~ lat_bin,
                                            .default = num_bins)) |>
-  write_parquet(path = file.path(pq_path, 'subsamples', folder),
-                    partitioning = c('species_code'),
-                    existing_data_behavior = 'overwrite')
+  write_dataset(path = file.path(pq_path, 'subsamples', folder),
+                format = 'parquet',
+                partitioning = c('species_code'),
+                existing_data_behavior = 'overwrite')
 
 print('Used checklist subsample to subset whole dataset')
