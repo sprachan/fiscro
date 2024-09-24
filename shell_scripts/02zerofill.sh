@@ -10,7 +10,7 @@ do
   for n in us ca;
   do 
     echo 'now starting' $i $n
-    Rscript ./data_processing/02-1zerofill.R -e ./filtered_data/${n}_${i}_ebd.txt -s ./filtered_data/${n}_${i}_sampling.txt -z ./processed_data/${n}_${i}_zf.txt;
+    Rscript ./data_processing/02-1zerofill.R -e ${n}_${i}_ebd.txt -s ${n}_${i}_sampling.txt -z ${n}_${i}_zf.txt;
     echo $i $n 'zero-filled'
   done;
 done;

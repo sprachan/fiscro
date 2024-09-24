@@ -10,50 +10,57 @@
 
 # Load dependencies and parse options ==========================================
 # Dependencies ----
-# tools for working with eBird data
-library(auk)
-
-# get and use options so I can run scripts flexibly from the command line
-library(optparse)
-
-# data manipulation tools
-library(dplyr)
+require(auk) # tools for working with eBird data
+require(optparse) # allows me to set arguments on command line Rscript calls
+require(dplyr) # data manipulation tools
 
 # Options ----
 # get arguments from the command line input
 option_list <- list(
   make_option(c("-a", "--ebdinput"), type = 'character',
               action = 'store',
-              help="ebd input file name"),
+              help="ebd input file name (do not include directory)"),
   make_option(c("-b", "--sedinput"), type = 'character',
               action = 'store',
-              help="sed input file name"),
+              help="sed input file name (do not include directory)"),
   make_option(c("-c", "--ebdoutput"), type = 'character',
               action = 'store',
-              help="ebd output file name"),
+              help="ebd output file name (do not include directory)"),
   make_option(c("-d", "--sedoutput"), type = 'character',
               action = 'store',
-              help = "sed output file name")
+              help = "sed output file name (do not include directory)")
   )
 
-# create a parser object
+# parse
 opt_parser = OptionParser(option_list = option_list);
 
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
 
 #store those arguments as easier to access variables
-input_ebd <- opt$ebdinput
-input_sed <- opt$sedinput
-output_ebd <- opt$ebdoutput
-output_sed <- opt$sedoutput
+input_ebd_name <- opt$ebdinput
+input_sed_name <- opt$sedinput
+output_ebd_name <- opt$ebdoutput
+output_sed_name <- opt$sedoutput
+
+output_ebd <- file.path('.', 'filtered_data', output_ebd_name)
+output_sed <- file.path('.', 'filtered_data', output_sed_name)
+input_ebd <- file.path('.', 'data', input_ebd_name)
+input_sed <- file.path('.', 'data', input_sed_name)
 
 #output will go to the command line, making this easier to debug and trace.
 print('names are set:')
-cat('input ebd: ', input_ebd, '\n', 
-    'input sed: ', input_sed, '\n',
-    'output ebd: ', output_ebd, '\n',
-    'output sed: ', output_sed, '\n')
+cat('input ebd name: ', input_ebd_name, '\n', 
+    'input sed name: ', input_sed_name, '\n',
+    'output ebd name: ', output_ebd_name, '\n',
+    'output sed name: ', output_sed_name, '\n')
+
+print('Input directory is assumed ./data and output directory is assumed 
+      ./filtered_data, so final paths are: ')
+cat('input ebd path: ', input_ebd, '\n',
+    'input sed path: ', input_sed, '\n',
+    'output ebd path: ', output_ebd, '\n',
+    'output sed path: ', output_sed, '\n')
 
 # Setup variables for filters =================================================
 species <- c('Fish Crow',
@@ -79,7 +86,7 @@ print(filters)
 filtered <- auk_filter(filters,
                        file = output_ebd, 
                        file_sampling = output_sed,
-                       overwrite=TRUE)
+                       overwrite = TRUE)
 
 print('filtered')
 

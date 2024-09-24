@@ -12,12 +12,12 @@
 
 # Load dependencies, parse options =======================================
 # data manipulation tools
-library(arrow) # for working with the parquet files
-library(dplyr)
+require(arrow) # for working with the parquet files
+require(dplyr) # data manipulation
+require(optparse) # get options from command line for flexibility
 
-# get options from command line for flexibility
-library(optparse)
 source('functions.R')
+
 ## Parse command line options ----
 option_list <- list(
   make_option(c('-n', '--numbins'), type = 'integer', 
@@ -52,7 +52,6 @@ print(folder)
 plot_path <- file.path('~', 'eBird_project', 'plots', 'subsampling')
 text_path <- file.path('~', 'eBird_project', 'subsampling_metrics')
 pq_path <- file.path('.', 'processed_data')
-
 
 # Subsample ====================================================================
 ebd_ds <- arrow::open_dataset(file.path(pq_path, 'species'))
