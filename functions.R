@@ -254,41 +254,6 @@ hist_compared <- function(data_in, nrow = 3, ncol = 4){
   return(p)
 }
 # Data Formatting Functions ====================================================
-
-#> DESCRIPTION: Given a data set and a vector of breaks from kde2d, assign the
-#> checklist data a longitude bin (and a latitude bin) according to the breaks.
-
-get_bin <- function(data_set, breaks){
-  # vector that will give the breaks above our long/lat
-  upper <- which(data_set < breaks)
-  # vector that will give the breaks below our long/lat
-  lower <- which(data_set > breaks)
-  
-  # edge case: above the highest break
-  if(length(upper) == 0){
-    if(length(lower) == 0){
-      # shouldn't be possible to be outside of the upper AND lower bound
-      return(NA)
-    }else{
-      # give index of the max lower bound if there are no breaks above the value
-      return(max(lower))
-    }
-    # edge case: below the lowest break
-  }else if(length(lower) == 0){
-    # give the index of the min upper bound 
-    return(min(upper))
-    # leverage the fact that if min(upper) - x < x - max(lower), we are closer
-    #> to the upper bound! Arbitrarily, if we are exactly in the middle, take
-    #> the upper bound
-  }else if(min(upper)+max(lower) <= 2*data_set){
-    # return index of the min upper bound
-    return(min(upper))
-  }else{
-    # return index of the max lower bound
-    return(max(lower))
-  }
-}
-
 #> DESCRIPTION: Turn a data frame into a <n> x <n> matrix for easy use in lapply
 #> and map functions. <over> is what the lapply/map is done "over", typically
 #> the year-month combinations. <nest_by> gives what we should complete the

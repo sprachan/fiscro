@@ -19,30 +19,23 @@
 #> observers, and checklists that have an actual checklist start time (not NA).
 #>
 # ------------------------------------------------------------------------------
-
 # Load dependencies and parse options ==========================================
 ## Dependencies ----
-# tools for working with eBird data
-library(auk)
-
-# data manipulation tools
-library(dplyr)
-
-# getting and using command line options for flexibility in running scripts
-library(optparse)
-
+require(auk) # tools for working with eBird data
+require(dplyr) # data manipulation tools
+require(optparse) # allows me to set arguments on command line Rscript calls
 
 ## Options ----
 option_list <- list(
   make_option(c("-e", "--ebdinput"), type = 'character',
               action = 'store',
-              help="ebd input file name"),
+              help="ebd input file name, without directory"),
   make_option(c("-s", "--sedinput"), type = 'character',
               action = 'store',
-              help="sed input file name"),
+              help="sed input file name, without directory"),
   make_option(c("-z", "--zerofilloutput"), type = 'character',
               action = 'store',
-              help = "zerofill output prefix, eg., ./processed_data/ct_")
+              help = "zerofill output file name, without directory")
 )
 
 # parse
@@ -51,9 +44,13 @@ opt_parser = OptionParser(option_list = option_list);
 # make a list of the arguments passed via command line
 opt = parse_args(opt_parser);
 
-input_ebd <- opt$ebdinput
-input_sed <- opt$sedinput
-output_zf <- opt$zerofilloutput
+input_ebd <- file.path('.', 'filtered_data', opt$ebdinput)
+input_sed <- file.path('.', 'filtered_data', opt$sedinput)
+output_zf <- file.path('.', 'processed_data', opt$zerofilloutput)
+
+if(grepl('zf', output_zf)){
+  stop('Make sure that the output file name contains zf')
+}
 
 # check that that worked as intended
 cat('EBD input path: ', input_ebd, '\n',
@@ -102,6 +99,3 @@ head(ebd_zf)
 # write file
 write.csv(ebd_zf, file = output_zf)
 print('written')
-
-
-
