@@ -61,7 +61,8 @@ species <- c('Fish Crow',
              'Blue Jay',
              'American Crow')
 
-ebd_zf <- auk_state(input_ebd, 'US-ME') |>
+ebd_zf <- auk_ebd(input_ebd, file_sampling = input_sed) |>
+          auk_state('US-ME') |>
           auk_zerofill(input_ebd, 
                        sampling_events = input_sed,
                        species = species, 
