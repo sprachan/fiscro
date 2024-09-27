@@ -96,5 +96,6 @@ head(ebd_zf)
 # write file
 write_dataset(ebd_zf,
               path = output_zf,
-              format = c('parquet'))
+              format = c,
+              paritioning = c('species_code'))
 print('Written to parquet')
