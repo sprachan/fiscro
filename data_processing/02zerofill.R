@@ -63,6 +63,10 @@ species <- c('Fish Crow',
 
 ebd_zf <- auk_ebd(input_ebd, file_sampling = input_sed) |>
           auk_state('US-ME') |>
+<<<<<<< HEAD
+=======
+          auk_filter() |>
+>>>>>>> 36fb428 (Big refocusing commit)
           auk_zerofill(input_ebd, 
                        sampling_events = input_sed,
                        species = species, 
