@@ -24,6 +24,7 @@
 require(auk) # tools for working with eBird data
 require(dplyr) # data manipulation tools
 require(optparse) # allows me to set arguments on command line Rscript calls
+require(arrow) # write to parquet
 
 ## Options ----
 option_list <- list(
@@ -32,10 +33,7 @@ option_list <- list(
               help="ebd input file name, without directory"),
   make_option(c("-s", "--sedinput"), type = 'character',
               action = 'store',
-              help="sed input file name, without directory"),
-  make_option(c("-z", "--zerofilloutput"), type = 'character',
-              action = 'store',
-              help = "zerofill output file name, without directory")
+              help="sed input file name, without directory")
 )
 
 # parse
@@ -46,11 +44,8 @@ opt = parse_args(opt_parser);
 
 input_ebd <- file.path('.', 'filtered_data', opt$ebdinput)
 input_sed <- file.path('.', 'filtered_data', opt$sedinput)
-output_zf <- file.path('.', 'processed_data', opt$zerofilloutput)
+output_zf <- file.path('.', 'processed_data')
 
-if(grepl('zf', output_zf)){
-  stop('Make sure that the output file name contains zf')
-}
 
 # check that that worked as intended
 cat('EBD input path: ', input_ebd, '\n',
@@ -66,10 +61,11 @@ species <- c('Fish Crow',
              'Blue Jay',
              'American Crow')
 
-ebd_zf <- auk_zerofill(input_ebd, 
+ebd_zf <- auk_state(input_ebd, 'US-ME') |>
+          auk_zerofill(input_ebd, 
                        sampling_events = input_sed,
                        species = species, 
-                       collapse = TRUE) |> # collapse = T to return a dataframe
+                       collapse = TRUE) |> # collapse = T to return a data frame
           mutate(species_code = ebird_species(scientific_name, 'code'),
                  observation_count = na_if(observation_count, 'X'),
                  observation_count = as.numeric(observation_count),
@@ -82,6 +78,7 @@ ebd_zf <- auk_zerofill(input_ebd,
                  species_code,
                  observation_count,
                  species_observed,
+                 state,
                  latitude,
                  longitude,
                  protocol_type,
@@ -97,5 +94,7 @@ print('zero-filled, filtered, and selected columns')
 head(ebd_zf)
 
 # write file
-write.csv(ebd_zf, file = output_zf)
-print('written')
+write_dataset(ebd_zf,
+              path = output_zf,
+              format = c('parquet'))
+print('Written to parquet')
