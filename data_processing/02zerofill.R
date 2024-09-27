@@ -61,13 +61,11 @@ species <- c('Fish Crow',
              'Blue Jay',
              'American Crow')
 
-ebd_zf <- auk_ebd(input_ebd, file_sampling = input_sed) |>
-          auk_state('US-ME') |>
-          auk_filter() |>
-          auk_zerofill(input_ebd, 
+ebd_zf <- auk_zerofill(input_ebd, 
                        sampling_events = input_sed,
                        species = species, 
                        collapse = TRUE) |> # collapse = T to return a data frame
+          filter(state == 'US-ME') |>
           mutate(species_code = ebird_species(scientific_name, 'code'),
                  observation_count = na_if(observation_count, 'X'),
                  observation_count = as.numeric(observation_count),

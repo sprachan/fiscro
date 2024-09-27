@@ -75,6 +75,7 @@ distance <- c(0, 5) # 0 to 5km
 # Filter =======================================================================
 #> Will overwrite existing filtered files if they exist in the destination
 filters <- auk_ebd(file = input_ebd, file_sampling = input_sed) |>
+           auk_state('US-ME') |>
            auk_species(species) |>
            auk_duration(duration) |>
            auk_distance(distance=distance) |>
